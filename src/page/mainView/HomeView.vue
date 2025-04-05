@@ -72,25 +72,25 @@ const tools = ref<ToolCardItem[]>([
     icon: fas.faPlus,
     photo: new URL('@/assets/card/meeting.jpg', import.meta.url).href,
     description: "Create a new meeting",
-    path: '/new-meeting',
+    path: 'meeting-schedule-form',
   }, {
     title: 'Join Meeting',
     icon: fas.faUser,
     photo: new URL('@/assets/card/join.jpg', import.meta.url).href,
     description: "Join a meeting",
-    path: '/meeting-form'
+    path: 'meeting-join-form'
   },
   {
     title: 'View Record',
     icon: fas.faVideo,
     photo: new URL('@/assets/card/record.jpg', import.meta.url).href,
     description: "View meeting record",
-    path: '/meeting-record'
+    path: 'conference-records'
   }
 ])
 
 const redirect = (path:string) => {
-  router.push({path: '/meeting-form'})
+  router.push({path:`/home/${path}`})
 }
 
 onMounted(() => {
@@ -112,7 +112,6 @@ $scrollbar-width: 4px;
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 20px;
   gap: 20px;
 
   .main-panel-header {
@@ -200,7 +199,7 @@ $scrollbar-width: 4px;
 
     .p-card {
       border-radius: 10px;
-      width: 200px;
+      width: 230px;
       height: 200px;
 
       .meeting-photo {

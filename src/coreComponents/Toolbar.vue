@@ -22,7 +22,7 @@ const props = defineProps({
 })
 
 const redirect = (path: string) => {
-  router.push({ path });
+  router.push({ path:`/home/${path}` });
 }
 
 

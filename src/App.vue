@@ -1,24 +1,38 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router';
-import MainLayout from './layout/MainLayout.vue'
+import Header from '@/coreComponents/Header.vue';
 </script>
 
 <template>
   <main class="container">
-    <RouterView />
+    <div class="main-layout">
+      <div class="header-view">
+        <Header />
+      </div>
+      <RouterView />
+    </div>
   </main>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .container {
   margin: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  text-align: center;
 }
+.main-layout {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
 
-
+  .header-view {
+    width: 100%;
+    height: 50px;
+    background: #0d1321;
+  }
+}
 </style>
 <style>
 :root {
@@ -36,6 +50,4 @@ import MainLayout from './layout/MainLayout.vue'
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
 }
-
-
 </style>

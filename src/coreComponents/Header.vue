@@ -58,7 +58,7 @@
 
       <Popover ref="op">
         <div class="user-panel">
-          <Button variant="text" severity="contrast">
+          <Button variant="text" severity="contrast" @click="redirect">
             <FontAwesomeIcon :icon="fas.faUser" />
             <span>User</span>
           </Button>
@@ -73,6 +73,7 @@
 </template>
 
 <script setup lang="ts">
+import { router } from '@/router';
 import { fas } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { Button, Popover } from 'primevue';
@@ -81,6 +82,10 @@ import { ref } from 'vue';
 const op = ref();
 const toggleUserPanel = (event: any) => {
   op.value.toggle(event);
+}
+
+const redirect = ()=>{
+  router.push({ path:'/register' });
 }
 
 </script>

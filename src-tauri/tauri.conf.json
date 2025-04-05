@@ -13,8 +13,10 @@
     "windows": [
       {
         "title": "llmeet",
-        "width": 800,
-        "height": 600
+        "width": 1050,
+        "height": 630,
+        "minWidth": 1000,
+        "minHeight": 620
       }
     ],
     "security": {
