@@ -1,17 +1,17 @@
 <script setup lang="ts">
+import { RouterView } from 'vue-router';
 import MainLayout from './layout/MainLayout.vue'
 </script>
 
 <template>
   <main class="container">
-    <MainLayout />
+    <RouterView />
   </main>
 </template>
 
 <style scoped>
 .container {
   margin: 0;
-  padding-top: 10vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
