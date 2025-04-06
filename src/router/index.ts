@@ -2,6 +2,7 @@ import { createWebHistory, createRouter } from "vue-router";
 
 import MainLayout from "@/layout/MainLayout.vue";
 import RegisterLayout from "@/layout/RegisterLayout.vue";
+import MeetingLayout from "@/layout/MeetingLayout.vue";
 
 const routes = [
   {
@@ -27,6 +28,13 @@ const routes = [
       { path: "login-form", name: 'Login Form', component: () => import("@/page/registerView/LoginFormView.vue")},
       // { path: "/register-form", name: 'Register Form', component: () => import("@/page/RegisterFormView.vue")},
     ]
+  },
+  {
+    path: "/meeting",
+    component: MeetingLayout,
+    children: [
+      { path: "", name: 'Meeting View', component: () => import("@/page/meetingView/MeetingInterfaceView.vue") },
+    ],
   }
 ];
 

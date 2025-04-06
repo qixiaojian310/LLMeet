@@ -44,6 +44,7 @@ import { reactive } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { fas } from '@fortawesome/free-solid-svg-icons';
+import { router } from '@/router';
 
 const toast = useToast();
 
@@ -76,6 +77,8 @@ const onFormSubmit = ({ valid }: any) => {
       summary: 'Form is submitted.',
       life: 3000
     });
+    router.push('/meeting');
+
   }
 };
 
