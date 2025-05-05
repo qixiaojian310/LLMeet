@@ -19,6 +19,7 @@
     "@primevue/forms": "^4.3.3",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
+    "@tauri-apps/plugin-store": "~2",
     "@types/node": "^22.14.0",
     "mpegts.js": "^1.8.0",
     "pinia": "^3.0.1",
