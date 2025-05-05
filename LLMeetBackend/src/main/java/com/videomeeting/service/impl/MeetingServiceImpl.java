@@ -2,6 +2,7 @@ package com.videomeeting.service.impl;
 
 import com.videomeeting.domain.Meeting;
 import com.videomeeting.dto.MeetingCreateDto;
+import com.videomeeting.dto.MeetingCreateResponse;
 import com.videomeeting.mapper.MeetingMapper;
 import com.videomeeting.service.MeetingService;
 import com.videomeeting.utils.JwtUserContextUtil;
@@ -10,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import com.videomeeting.utils.IdGeneratorUtil;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Service
 public class MeetingServiceImpl implements MeetingService {
@@ -24,7 +25,7 @@ public class MeetingServiceImpl implements MeetingService {
     }
 
     @Override
-    public ResponseEntity<String> addMeeting(MeetingCreateDto meetingCreateDto){
+    public ResponseEntity<MeetingCreateResponse> addMeeting(MeetingCreateDto meetingCreateDto){
         String status = "ready";
         System.out.println(status);
         JwtUserContextUtil.UserHolder userHolder = JwtUserContextUtil.getCurrentUser();
@@ -32,14 +33,18 @@ public class MeetingServiceImpl implements MeetingService {
         if (creatorId == null){
             return null;
         }
-        LocalDateTime createTime = LocalDateTime.now();
+        OffsetDateTime createTime = OffsetDateTime.now();
         System.out.println(createTime);
+        System.out.println(meetingCreateDto.getStartTime());
+        System.out.println(meetingCreateDto.getEndTime());
         String meetingId = IdGeneratorUtil.generateCustomId();
         Meeting meeting = new Meeting(meetingId, meetingCreateDto.getTitle(), meetingCreateDto.getDescription(),
-                creatorId, createTime,status);
+                creatorId, createTime,status, meetingCreateDto.getStartTime(), meetingCreateDto.getEndTime());
         if(meetingMapper.addMeeting(meeting) == 0)
             return null;
 
-        return ResponseEntity.ok(meetingId);
+        MeetingCreateResponse response = new MeetingCreateResponse();
+        response.setMeetingId(meetingId);
+        return ResponseEntity.ok(response);
     }
 }

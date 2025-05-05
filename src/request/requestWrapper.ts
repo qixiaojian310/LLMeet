@@ -2,6 +2,7 @@ import { router } from '@/router';
 import {useUserStore} from '../stores/userStore';
 import {userStaticStore} from '@/utils/staticStore';
 import {fetch} from '@tauri-apps/plugin-http'
+import { message } from 'ant-design-vue';
 let expireCounter = 0;
 const MAX_RETRY_TIME = 0;
 type methodType = 'GET' | 'POST' | 'PUT' | 'DELETE'
@@ -61,7 +62,8 @@ export const requestWrapper = async (
           await userStaticStore.delete('accessToken');
           await userStaticStore.save();
           userStore.logout();
-          router.push({name: ''});
+          router.push({name: 'LoginForm'});
+          message.error('Login expired, please login again');
           return 401;
         }
         return response.status;

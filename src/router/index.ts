@@ -64,7 +64,7 @@ const routes = [
     children: [
       {
         path: "",
-        name: "Meeting View",
+        name: "MeetingView",
         component: () => import("@/page/meetingView/MeetingInterfaceView.vue"),
       },
     ],

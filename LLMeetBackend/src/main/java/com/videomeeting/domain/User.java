@@ -2,7 +2,7 @@ package com.videomeeting.domain;
 
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 import java.io.Serializable;
 
@@ -24,9 +24,9 @@ public class User implements Serializable {
 
     private String password;
 
-    private LocalDateTime createdAt;
+    private OffsetDateTime createdAt;
 
-    public User(String username, String email, String password, LocalDateTime createdAt) {
+    public User(String username, String email, String password, OffsetDateTime createdAt) {
         this.username = username;
         this.email = email;
         this.password = password;

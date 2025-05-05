@@ -45,7 +45,9 @@
         <FontAwesomeIcon :icon="controllerState.audio ? fas.faMicrophone : fas.faMicrophoneSlash" size="2x" />
         <p>Audio</p>
       </Button>
-      <Button type="button" severity="secondary" @click="router.push('/meeting')">
+      <Button type="button" severity="secondary" @click="()=>{
+        router.push({'name': 'HomeView'})
+      }">
         <FontAwesomeIcon :icon="fas.faHouse" size="2x" />
         <p>Home</p>
       </Button>

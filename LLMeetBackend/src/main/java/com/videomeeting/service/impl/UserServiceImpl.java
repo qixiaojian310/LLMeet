@@ -11,7 +11,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -32,7 +32,7 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException("邮箱已被注册");
         }
 
-        User user = new User(registerRequest.getUsername(),registerRequest.getEmail(),passwordEncoder.encode(registerRequest.getPassword()),LocalDateTime.now());
+        User user = new User(registerRequest.getUsername(),registerRequest.getEmail(),passwordEncoder.encode(registerRequest.getPassword()),OffsetDateTime.now());
 
         userMapper.save(user);
         return userMapper.existsByUsername(registerRequest.getUsername());

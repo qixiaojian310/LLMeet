@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
 import org.hibernate.annotations.GenericGenerator;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Entity
 @Table(name = "meeting")
@@ -27,24 +27,26 @@ public class Meeting {
     private String status; // "ACTIVE" or "ENDED"
 
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private OffsetDateTime createdAt;
 
     @Column(name = "start_time")
-    private LocalDateTime startTime;
+    private OffsetDateTime startTime;
 
     @Column(name = "end_time")
-    private LocalDateTime endedAt;
+    private OffsetDateTime endTime;
 
     public Meeting() {}
 
 
-    public Meeting(String meetingId,String title, String description, Integer creatorId, LocalDateTime createTime, String status) {
+    public Meeting(String meetingId,String title, String description, Integer creatorId, OffsetDateTime createTime, String status, OffsetDateTime startTime ,OffsetDateTime endTime) {
         this.meetingId = meetingId;
         this.title = title;
         this.description = description;
         this.creatorId = creatorId;
         this.createdAt = createTime;
         this.status = status;
+        this.endTime = endTime;
+        this.startTime = startTime;
     }
     public String getMeetingId() {
         return meetingId;
@@ -74,25 +76,25 @@ public class Meeting {
         this.creatorId = creatorId;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public OffsetDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(OffsetDateTime createdAt) {
         this.createdAt = createdAt;
     }
-    public LocalDateTime getStartTime() {
+    public OffsetDateTime getStartTime() {
         return startTime;
     }
 
-    public void setStartTime(LocalDateTime startTime) {
+    public void setStartTime(OffsetDateTime startTime) {
         this.startTime = startTime;
     }
-    public LocalDateTime getEndedAt() {
-        return endedAt;
+    public OffsetDateTime getEndedAt() {
+        return endTime;
     }
-    public void setEndedAt(LocalDateTime endedAt) {
-        this.endedAt = endedAt;
+    public void setEndedAt(OffsetDateTime endedAt) {
+        this.endTime = endedAt;
     }
     public String getStatus() {
         return status;
