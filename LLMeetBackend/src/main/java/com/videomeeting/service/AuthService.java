@@ -4,6 +4,6 @@ import com.videomeeting.domain.User;
 import org.springframework.http.ResponseEntity;
 
 public interface AuthService {
-    ResponseEntity<String> login(String username, String password);
+    ResponseEntity<?> login(String username, String password);
     void register(User user);
 }

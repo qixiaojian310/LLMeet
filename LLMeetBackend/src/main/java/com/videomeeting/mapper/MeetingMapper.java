@@ -2,17 +2,15 @@ package com.videomeeting.mapper;
 
 import com.videomeeting.domain.Meeting;
 import com.videomeeting.domain.User;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Options;
-import org.apache.ibatis.annotations.Update;
+import org.apache.ibatis.annotations.*;
+
+import java.util.Optional;
 
 
 @Mapper
 public interface MeetingMapper {
-    @Insert("INSERT INTO meeting (meeting_id, title, description, creator_id, created_at, status) " +
+    @Insert("INSERT INTO meeting (meeting_id,title, description, creator_id, created_at, status) " +
             "VALUES (#{meetingId}, #{title}, #{description}, #{creatorId}, #{createdAt}, #{status})")
-    @Options(useGeneratedKeys = true, keyProperty = "meetingId")
     int addMeeting(Meeting meeting);
 
     @Update("UPDATE meeting SET " +
@@ -23,5 +21,8 @@ public interface MeetingMapper {
             "end_time = #{endedAt} " +
             "WHERE meeting_id = #{meetingId}")
     int update(Meeting meeting);
+
+    @Select("SELECT * FROM meeting WHERE meeting_id = #{meetingId}")
+    Meeting findByMeetingId(String meetingId);
 
 }

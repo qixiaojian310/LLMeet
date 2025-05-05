@@ -1,10 +1,12 @@
 package com.videomeeting.service;
 
 import com.videomeeting.domain.Meeting;
+import com.videomeeting.dto.MeetingCreateDto;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 @Service
 public interface MeetingService {
-    int addMeeting(Meeting meeting);
-    public Meeting getMeetingById(String id);
+    Meeting getMeetingById(String meetingId);
+    ResponseEntity<String> addMeeting(MeetingCreateDto meetingCreateDto);
 }

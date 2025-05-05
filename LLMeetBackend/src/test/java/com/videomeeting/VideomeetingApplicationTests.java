@@ -1,11 +1,18 @@
 package com.videomeeting;
 
+import com.videomeeting.domain.Meeting;
 import com.videomeeting.domain.User;
 import com.videomeeting.dto.LoginRequest;
+import com.videomeeting.dto.MeetingCreateDto;
 import com.videomeeting.dto.RegisterRequest;
+import com.videomeeting.service.MeetingService;
 import com.videomeeting.service.impl.AuthServiceImpl;
+import com.videomeeting.service.impl.MeetingServiceImpl;
 import com.videomeeting.service.impl.UserServiceImpl;
 import com.videomeeting.utils.IdGeneratorUtil;
+import com.videomeeting.utils.JwtUserContextUtil;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -39,6 +46,15 @@ class VideomeetingApplicationTests {
 	@Test
 	void generateor() {
 		System.out.println(idGeneratorUtil.generateCustomId());
+	}
+
+	@Autowired
+	MeetingService meetingService;
+
+	@Test
+	void addMeeting() {
+		MeetingCreateDto meetingCreateDto = new MeetingCreateDto("111", "2222");
+		meetingService.addMeeting(meetingCreateDto);
 	}
 
 
