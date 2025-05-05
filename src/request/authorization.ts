@@ -6,6 +6,11 @@ interface BasicUserInfo {
   password: string;
 }
 
+interface StoreUserInfo {
+  username: string;
+  userId: number;
+}
+
 interface UserSetting {
   daily_goal: number,
   reminder_time: string,
@@ -24,13 +29,18 @@ export const signin = async (
     userInfo,
     {
       method: 'POST',
-    }
+    },
+    false
   );
   if (typeof res !== 'number') {
     const body = await res.json();
-    await userStaticStore.set('access_token', body.access_token);
-    await userStaticStore.set('userInfo', JSON.stringify(body.user));
-
+    await userStaticStore.set('accessToken', body.accessToken);
+    const user:StoreUserInfo = {
+      username: body.username,
+      userId: body.userId,
+    } 
+    await userStaticStore.set('userInfo', JSON.stringify(user));
+    await userStaticStore.save();
     return body;
   } else {
     return res;
@@ -46,10 +56,11 @@ export const signup = async (
     {
       method: 'POST',
     },
+    false
   );
   if (typeof res !== 'number') {
     const body = await res.json();
-    localStorage.setItem('access_token', body.access_token);
+    localStorage.setItem('access_token', body);
     localStorage.setItem('userInfo', JSON.stringify(body.user));
     return body;
   } else {

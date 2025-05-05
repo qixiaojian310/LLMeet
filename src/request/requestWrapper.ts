@@ -1,5 +1,8 @@
+import { router } from '@/router';
 import {useUserStore} from '../stores/userStore';
 import {userStaticStore} from '@/utils/staticStore';
+import {fetch} from '@tauri-apps/plugin-http'
+import { useToast } from 'primevue';
 let expireCounter = 0;
 const MAX_RETRY_TIME = 1;
 type methodType = 'GET' | 'POST' | 'PUT' | 'DELETE'
@@ -21,38 +24,51 @@ export const requestWrapper = async (
     method?: methodType
     signal?: AbortSignal
   },
+  useAuth = true,
 ): Promise<number | Response> => {
   const { method, signal } = options ?? {};
-  const auth = await userStaticStore.get<string>('access_token');
+  
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  if (useAuth) {
+    const auth = await userStaticStore.get<string>('accessToken');
+    if (auth) {
+      headers['Authorization'] = 'Bearer ' + auth;
+    }
+  }
+
   const requestOptions: any = {
     method: method ?? 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: 'Bearer ' + (auth || ''),
-    },
+    headers,
+    body: body ? JSON.stringify(body) : null,
+    signal,
   };
+
   try {
-    const response = await fetch(
-      BASE_URL + requestURL,
-      {
-        ...requestOptions,
-        body: body ? JSON.stringify(body) : null,
-        signal,
-      },
-    );
+    const response = await fetch(BASE_URL + requestURL, requestOptions);
+
     if (response.ok) {
       return response;
     } else {
       if (expireCounter < MAX_RETRY_TIME) {
-        // refresh token
         expireCounter++;
-        return requestWrapper(requestURL, body, options);
+        return requestWrapper(requestURL, body, options, useAuth);
       } else {
         expireCounter = 0;
-        if (response.status === 401) {
-          // token expired
-          await userStaticStore.delete('access_token');
+        if (response.status === 401 && useAuth) {
+          const userStore = useUserStore();
+          await userStaticStore.delete('accessToken');
+          await userStaticStore.save();
           userStore.logout();
+          router.push({path: '/register'});
+          const toast = useToast();
+          toast.add({
+            severity: "error",
+            summary: "Logout",
+            life: 3000,
+          });
           return 401;
         }
         return response.status;

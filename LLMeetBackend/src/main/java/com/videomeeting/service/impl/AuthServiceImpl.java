@@ -2,6 +2,7 @@ package com.videomeeting.service.impl;
 
 import com.videomeeting.domain.CustomUserDetails;
 import com.videomeeting.domain.User;
+import com.videomeeting.dto.LoginResponse;
 import com.videomeeting.dto.RegisterRequest;
 import com.videomeeting.utils.JwtTokenUtil;
 import com.videomeeting.service.AuthService;
@@ -28,7 +29,7 @@ public class AuthServiceImpl implements AuthService {
     private UserService userService;
 
     @Override
-    public ResponseEntity<String> login(String username, String password) {
+    public ResponseEntity<Object> login(String username, String password) {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(username, password));
@@ -36,8 +37,11 @@ public class AuthServiceImpl implements AuthService {
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
             // 直接复用认证结果
             System.out.println("111111111111111111111111111111111111111111");
-            System.out.println(userDetails.getUserId());
-            return ResponseEntity.ok(jwtUtil.generateToken(userDetails));
+            LoginResponse response = new LoginResponse();
+            response.setAccessToken(jwtUtil.generateToken(userDetails));
+            response.setUserId(userDetails.getUserId());
+            response.setUsername(userDetails.getUsername());
+            return ResponseEntity.ok(response);
         } catch (AuthenticationException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("username or password is wrong!");
         }

@@ -15,14 +15,14 @@ const registerBGURL = new URL('@/assets/login-bg.png', import.meta.url).href
 
 <style scoped lang="scss">
 .register-panel {
-  background: #253047;
+  background: #3e4657;
   overflow: hidden;
   flex: 1;
   display: flex;
 }
 .controller-panel{
   height: 100%;
-  width: 300px;
+  width: 500px;
 }
 .register-bg{
   height: 100%;
