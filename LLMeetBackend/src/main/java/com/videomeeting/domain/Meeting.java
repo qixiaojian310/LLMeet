@@ -12,8 +12,6 @@ import java.time.LocalDateTime;
 @Data
 public class Meeting {
     @Id
-    @GeneratedValue(generator = "custom_id")
-    @GenericGenerator(name = "custom_id", strategy = "com.videomeeting.utils.CustomeIdGenerator")
     @Column(name = "meeting_id")
     private String meetingId;
 
@@ -23,9 +21,8 @@ public class Meeting {
     @Column(name = "description")
     private String description;
 
-    @ManyToOne
-    @JoinColumn(name = "creator_id", referencedColumnName = "user_id")
-    private User creator;
+    @Column(name = "creator_id")  // 直接存储ID，去掉@ManyToOne
+    private Integer creatorId;
 
     @Column(name = "status")
     private String status; // "ACTIVE" or "ENDED"
@@ -41,6 +38,69 @@ public class Meeting {
 
     public Meeting() {}
 
+
+    public Meeting(String meetingId,String title, String description, Integer creatorId, LocalDateTime createTime, String status) {
+        this.meetingId = meetingId;
+        this.title = title;
+        this.description = description;
+        this.creatorId = creatorId;
+        this.createdAt = createTime;
+        this.status = status;
+    }
+    public String getMeetingId() {
+        return meetingId;
+    }
+    public void setMeetingId(String meetingId) {
+        this.meetingId = meetingId;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+    public String getDescription() {
+        return description;
+    }
+    public void setDescription(String description) {
+        this.description = description;
+    }
+    public Integer getCreatorId() {
+        return creatorId;
+    }
+
+    public void setCreatorId(Integer creatorId) {
+        this.creatorId = creatorId;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+    public LocalDateTime getEndedAt() {
+        return endedAt;
+    }
+    public void setEndedAt(LocalDateTime endedAt) {
+        this.endedAt = endedAt;
+    }
+    public String getStatus() {
+        return status;
+    }
+    public void setStatus(String status) {
+        this.status = status;
+    }
 
 }
 

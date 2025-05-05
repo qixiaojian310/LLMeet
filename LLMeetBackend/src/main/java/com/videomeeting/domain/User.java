@@ -59,4 +59,7 @@ public class User implements Serializable {
         this.password = password;
     }
 
+    public Integer getUserID() {
+        return userId;
+    }
 }

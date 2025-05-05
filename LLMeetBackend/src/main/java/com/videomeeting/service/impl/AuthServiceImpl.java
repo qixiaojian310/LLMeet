@@ -33,7 +33,10 @@ public class AuthServiceImpl implements AuthService {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(username, password));
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();                              // 直接复用认证结果
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+            // 直接复用认证结果
+            System.out.println("111111111111111111111111111111111111111111");
+            System.out.println(userDetails.getUserId());
             return ResponseEntity.ok(jwtUtil.generateToken(userDetails));
         } catch (AuthenticationException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("username or password is wrong!");

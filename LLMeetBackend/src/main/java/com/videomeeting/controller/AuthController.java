@@ -2,14 +2,11 @@ package com.videomeeting.controller;
 
 import com.videomeeting.domain.User;
 import com.videomeeting.dto.LoginRequest;
-import com.videomeeting.dto.LoginResponse;
 import com.videomeeting.dto.RegisterRequest;
 import com.videomeeting.service.AuthService;
 import com.videomeeting.service.UserService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.validation.BindingResult;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -37,7 +34,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
         return authService.login(request.getUsername(), request.getPassword());
     }
 }

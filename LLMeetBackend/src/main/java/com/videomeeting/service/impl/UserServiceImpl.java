@@ -1,5 +1,6 @@
 package com.videomeeting.service.impl;
 
+import com.videomeeting.domain.CustomUserDetails;
 import com.videomeeting.domain.User;
 import com.videomeeting.dto.RegisterRequest;
 import com.videomeeting.exception.BusinessException;
@@ -44,12 +45,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public CustomUserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = findByUsername(username);
-        return org.springframework.security.core.userdetails.User.builder()
-                .username(user.getUsername())
-                .password(user.getPassword())
-                .roles("USER")
-                .build();
+        return new CustomUserDetails(user.getUserID(),user.getUsername(), user.getPassword());
     }
 }

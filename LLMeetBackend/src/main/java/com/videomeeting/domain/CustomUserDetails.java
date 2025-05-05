@@ -15,6 +15,7 @@ public class CustomUserDetails implements UserDetails {
         this.userId = userId;
         this.username = username;
         this.password = password;
+        this.authorities = authorities;
     }
     public Integer getUserId() {
         return userId;
