@@ -7,7 +7,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 public interface UserService extends UserDetailsService {
-    void register(RegisterRequest registerRequest);
+    boolean register(RegisterRequest registerRequest);
     User findByUsername(String username);
     @Override
     CustomUserDetails loadUserByUsername(String username) throws UsernameNotFoundException;

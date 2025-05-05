@@ -3,12 +3,12 @@ package com.videomeeting.controller;
 import com.videomeeting.domain.User;
 import com.videomeeting.dto.LoginRequest;
 import com.videomeeting.dto.RegisterRequest;
+import com.videomeeting.dto.RegisterResponse;
 import com.videomeeting.service.AuthService;
 import com.videomeeting.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -21,11 +21,15 @@ public class AuthController {
     private UserService userService;
 
     @PostMapping("/register")
-    public void register(
-            @RequestBody @Valid RegisterRequest registerRequest){
+    public ResponseEntity<?> register(
+            @RequestBody @Valid RegisterRequest register){
 
+        User user = new User();
+        user.setUsername(register.getUsername());
+        user.setPassword(register.getPassword());
+        user.setEmail(register.getEmail());
         // 注册用户
-        userService.register(registerRequest);
+        return authService.register(user);
 
         // 自动登录（可选）
     }

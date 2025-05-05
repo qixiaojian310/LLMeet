@@ -28,7 +28,6 @@
           <label for="openCamera">Open Camera</label>
         </div>
       </div>
-      <Toast />
     <Button type="submit" severity="secondary">
       <FontAwesomeIcon :icon="fas.faChampagneGlasses" />
       Enter Meeting
@@ -39,14 +38,12 @@
 <script setup lang="ts">
 
 import { Form } from '@primevue/forms';
-import { Button, IftaLabel, InputText, Message, Toast, Checkbox } from 'primevue';
+import { Button, IftaLabel, InputText, Message , Checkbox } from 'primevue';
 import { reactive } from 'vue';
-import { useToast } from 'primevue/usetoast';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { fas } from '@fortawesome/free-solid-svg-icons';
 import { router } from '@/router';
-
-const toast = useToast();
+import { message } from 'ant-design-vue';
 
 const initialValues = reactive({
   username: '',
@@ -72,13 +69,8 @@ const resolver = ({ values }: any) => {
 
 const onFormSubmit = ({ valid }: any) => {
   if (valid) {
-    toast.add({
-      severity: 'success',
-      summary: 'Form is submitted.',
-      life: 3000
-    });
+    message.success('Enter meeting successfully'),
     router.push('/meeting');
-
   }
 };
 

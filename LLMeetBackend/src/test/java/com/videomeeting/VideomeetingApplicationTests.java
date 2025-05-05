@@ -17,6 +17,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.time.OffsetDateTime;
+
 @SpringBootTest
 class VideomeetingApplicationTests {
 
@@ -53,7 +55,7 @@ class VideomeetingApplicationTests {
 
 	@Test
 	void addMeeting() {
-		MeetingCreateDto meetingCreateDto = new MeetingCreateDto("111", "2222");
+		MeetingCreateDto meetingCreateDto = new MeetingCreateDto("111", "2222", OffsetDateTime.parse("2025-05-06T14:30:00Z"),OffsetDateTime.parse("2025-05-06T15:00:00Z"));
 		meetingService.addMeeting(meetingCreateDto);
 	}
 
