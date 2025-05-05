@@ -4,6 +4,7 @@ import com.videomeeting.domain.CustomUserDetails;
 import com.videomeeting.domain.User;
 import com.videomeeting.dto.LoginResponse;
 import com.videomeeting.dto.RegisterRequest;
+import com.videomeeting.dto.RegisterResponse;
 import com.videomeeting.utils.JwtTokenUtil;
 import com.videomeeting.service.AuthService;
 import com.videomeeting.service.UserService;
@@ -15,7 +16,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -47,12 +47,14 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
-    @Override
-    public void register(User user) {
+    public ResponseEntity<Object> register(User user) {
         RegisterRequest request = new RegisterRequest();
         request.setUsername(user.getUsername());
         request.setPassword(user.getPassword());
         request.setEmail(user.getEmail());
-        userService.register(request);
+        boolean res = userService.register(request);
+        RegisterResponse response = new RegisterResponse();
+        response.setSuccess(res);
+        return ResponseEntity.ok(response);
     }
 }

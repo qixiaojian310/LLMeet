@@ -2,9 +2,8 @@ import { router } from '@/router';
 import {useUserStore} from '../stores/userStore';
 import {userStaticStore} from '@/utils/staticStore';
 import {fetch} from '@tauri-apps/plugin-http'
-import { useToast } from 'primevue';
 let expireCounter = 0;
-const MAX_RETRY_TIME = 1;
+const MAX_RETRY_TIME = 0;
 type methodType = 'GET' | 'POST' | 'PUT' | 'DELETE'
 const BASE_URL = 'http://localhost:8080';
 // const BASE_URL = 'http://192.168.1.104:8000';
@@ -62,13 +61,7 @@ export const requestWrapper = async (
           await userStaticStore.delete('accessToken');
           await userStaticStore.save();
           userStore.logout();
-          router.push({path: '/register'});
-          const toast = useToast();
-          toast.add({
-            severity: "error",
-            summary: "Logout",
-            life: 3000,
-          });
+          router.push({name: ''});
           return 401;
         }
         return response.status;

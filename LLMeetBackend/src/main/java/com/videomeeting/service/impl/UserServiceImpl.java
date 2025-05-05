@@ -7,7 +7,6 @@ import com.videomeeting.exception.BusinessException;
 import com.videomeeting.mapper.UserMapper;
 import com.videomeeting.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -24,7 +23,7 @@ public class UserServiceImpl implements UserService {
     private PasswordEncoder passwordEncoder;
 
     @Override
-    public void register(RegisterRequest registerRequest) {
+    public boolean register(RegisterRequest registerRequest) {
         if (userMapper.existsByUsername(registerRequest.getUsername())) {
             throw new BusinessException("用户名已存在");
         }
@@ -36,6 +35,7 @@ public class UserServiceImpl implements UserService {
         User user = new User(registerRequest.getUsername(),registerRequest.getEmail(),passwordEncoder.encode(registerRequest.getPassword()),LocalDateTime.now());
 
         userMapper.save(user);
+        return userMapper.existsByUsername(registerRequest.getUsername());
     }
 
     @Override
