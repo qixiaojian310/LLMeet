@@ -36,8 +36,6 @@ public class SecurityConfig {
                         req -> req
                                 .requestMatchers("/api/auth/**")
                                 .permitAll()
-                                .requestMatchers(HttpMethod.OPTIONS, "/**")
-                                .permitAll()
                                 .anyRequest()
                                 .authenticated()
                 )
