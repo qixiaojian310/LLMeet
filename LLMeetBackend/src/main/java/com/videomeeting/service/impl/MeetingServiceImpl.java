@@ -14,12 +14,11 @@ public class MeetingServiceImpl implements MeetingService {
 
     @Override
     public Meeting getMeetingById(String id) {
-
-        return
+        return meetingMapper.getMeetingByMeetingId(id);
     }
 
     @Override
     public int addMeeting(Meeting meeting){
-        return
+        return meetingMapper.addMeeting(meeting);
     }
 }

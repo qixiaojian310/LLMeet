@@ -2,10 +2,7 @@ package com.videomeeting.mapper;
 
 import com.videomeeting.domain.Meeting;
 import com.videomeeting.domain.User;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Options;
-import org.apache.ibatis.annotations.Update;
+import org.apache.ibatis.annotations.*;
 
 
 @Mapper
@@ -24,4 +21,7 @@ public interface MeetingMapper {
             "WHERE meeting_id = #{meetingId}")
     int update(Meeting meeting);
 
+
+    @Select("SELECT * FROM meeting WHERE meeting_id = #{meeting_id}")
+    Meeting getMeetingByMeetingId(String meeting_id);
 }
