@@ -1,18 +1,21 @@
 package com.videomeeting.dto;
 
 
+import jakarta.annotation.Nullable;
+import lombok.AllArgsConstructor;
 
+@AllArgsConstructor
 public class LoginResponse {
     public LoginResponse() {}
-    private String token;
+    private String accessToken;
     private Integer userId;
     private String username;
     private String email;
-    public String getToken() {
-        return token;
+    public String getAccessToken() {
+        return accessToken;
     }
-    public void setToken(String token) {
-        this.token = token;
+    public void setAccessToken(String token) {
+        this.accessToken = token;
     }
 
     public Integer getUserId() {

@@ -53,18 +53,22 @@
       <p>LLMeet</p>
     </div>
     <div class="splitter-view__splitter" />
-    <div class="splitter-view__right">
+    <div class="splitter-view__right" v-if="router.currentRoute.value.path === '/register'" >
       <Button icon="pi pi-user" shape="circle" @click="toggleUserPanel" />
 
       <Popover ref="op">
         <div class="user-panel">
-          <Button variant="text" severity="contrast" @click="redirect">
+          <Button variant="text" severity="contrast">
             <FontAwesomeIcon :icon="fas.faUser" />
             <span>User</span>
           </Button>
           <Button variant="text" severity="contrast">
             <FontAwesomeIcon :icon="fas.faGear" />
             <span>Setting</span>
+          </Button>
+          <Button variant="text" severity="contrast" @click="logout">
+            <FontAwesomeIcon :icon="fas.faRightFromBracket" />
+            <span>Logout</span>
           </Button>
         </div>
       </Popover>
@@ -74,9 +78,11 @@
 
 <script setup lang="ts">
 import { router } from '@/router';
+import { useUserStore } from '@/stores/userStore';
+import { userStaticStore } from '@/utils/staticStore';
 import { fas } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { Button, Popover } from 'primevue';
+import { Button, Popover, useToast } from 'primevue';
 import { ref } from 'vue';
 
 const op = ref();
@@ -84,7 +90,17 @@ const toggleUserPanel = (event: any) => {
   op.value.toggle(event);
 }
 
-const redirect = ()=>{
+const logout = async ()=>{
+  const userStore = useUserStore();
+          await userStaticStore.delete('accessToken');
+          await userStaticStore.save();
+          userStore.logout();
+          const toast = useToast();
+          toast.add({
+            severity: "error",
+            summary: "Logout",
+            life: 3000,
+          });
   router.push({ path:'/register' });
 }
 

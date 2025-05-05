@@ -18,6 +18,7 @@
     "@primeuix/themes": "^1.0.1",
     "@primevue/forms": "^4.3.3",
     "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-http": "^2.4.3",
     "@tauri-apps/plugin-opener": "^2",
     "@tauri-apps/plugin-store": "~2",
     "@types/node": "^22.14.0",
