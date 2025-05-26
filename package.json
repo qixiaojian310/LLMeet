@@ -23,6 +23,7 @@
     "@tauri-apps/plugin-store": "~2",
     "@types/node": "^22.14.0",
     "ant-design-vue": "4.x",
+    "livekit-client": "^2.13.3",
     "mpegts.js": "^1.8.0",
     "pinia": "^3.0.1",
     "primeicons": "^7.0.0",

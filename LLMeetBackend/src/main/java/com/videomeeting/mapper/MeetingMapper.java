@@ -22,6 +22,9 @@ public interface MeetingMapper {
             "WHERE meeting_id = #{meetingId}")
     int update(Meeting meeting);
 
+    @Delete("DELETE FROM meeting WHERE meeting_id = #{meetingId}")
+    int deleteMeeting(String meetingId);
+
     @Select("SELECT * FROM meeting WHERE meeting_id = #{meetingId}")
     Meeting findByMeetingId(String meetingId);
 

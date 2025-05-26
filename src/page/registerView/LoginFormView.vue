@@ -70,6 +70,7 @@ import { fas } from "@fortawesome/free-solid-svg-icons";
 import { signin } from "@/request/authorization";
 import { router } from "@/router";
 import { message } from 'ant-design-vue';
+import { useUserStore } from "@/stores/userStore";
 
 const initialValues = reactive({
   username: "",
@@ -92,6 +93,8 @@ const resolver = ({ values }: any) => {
   };
 };
 
+const userStore = useUserStore()
+
 const onFormSubmit = async (e: FormSubmitEvent) => {
   if (e.valid) {
     const res = await signin({
@@ -99,6 +102,7 @@ const onFormSubmit = async (e: FormSubmitEvent) => {
       password: e.values.password,
     });
     if (typeof res !== "number") {
+      userStore.login(e.values.username);
       router.push({ path: "/home" });
       message.success('Login successful');
     } else {

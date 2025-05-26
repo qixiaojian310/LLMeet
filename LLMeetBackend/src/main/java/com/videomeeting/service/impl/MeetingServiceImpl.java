@@ -3,6 +3,8 @@ package com.videomeeting.service.impl;
 import com.videomeeting.domain.Meeting;
 import com.videomeeting.dto.MeetingCreateDto;
 import com.videomeeting.dto.MeetingCreateResponse;
+import com.videomeeting.dto.MeetingDeleteDto;
+import com.videomeeting.dto.MeetingDeleteResponse;
 import com.videomeeting.mapper.MeetingMapper;
 import com.videomeeting.service.MeetingService;
 import com.videomeeting.utils.JwtUserContextUtil;
@@ -45,6 +47,13 @@ public class MeetingServiceImpl implements MeetingService {
 
         MeetingCreateResponse response = new MeetingCreateResponse();
         response.setMeetingId(meetingId);
+        return ResponseEntity.ok(response);
+    }
+
+    @Override
+    public ResponseEntity<MeetingDeleteResponse> deleteMeeting(MeetingDeleteDto meetingDeleteDto){
+        MeetingDeleteResponse response = new MeetingDeleteResponse();
+        response.setSuccess(meetingMapper.deleteMeeting(meetingDeleteDto.getMeetingId())==0);
         return ResponseEntity.ok(response);
     }
 }

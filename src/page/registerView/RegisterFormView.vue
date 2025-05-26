@@ -109,8 +109,9 @@ import { fas } from "@fortawesome/free-solid-svg-icons";
 import { signup } from "@/request/authorization";
 import { router } from "@/router";
 import { message } from 'ant-design-vue'
+import { useUserStore } from "@/stores/userStore";
 
-
+const userStore = useUserStore()
 const initialValues = reactive({
   username: "",
   password: "",
@@ -164,6 +165,7 @@ const onFormSubmit = async (e: FormSubmitEvent) => {
     });
     
     if (typeof res !== "number") {
+      userStore.login(e.values.username)
       await router.push({ name: "LoginForm" });
       message.success("Register successful, you can login now.")
     } else {

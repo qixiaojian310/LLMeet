@@ -138,8 +138,12 @@ import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { fas } from "@fortawesome/free-solid-svg-icons";
 import { router } from "@/router";
 import { notification } from "ant-design-vue";
-import { createMeeting, MeetingInfo } from "@/request/meeting";
+import { createMeeting, deleteMeeting, getMeetingToken, MeetingInfo } from "@/request/meeting";
+import { useUserStore } from "@/stores/userStore";
+import { useMeetingStore } from "@/stores/meetingStore";
 
+const userStore = useUserStore();
+const meetingStore = useMeetingStore();
 const initialValues = reactive({
   username: "",
   meetingTitle: "",
@@ -164,7 +168,9 @@ const resolver = ({ values }: any) => {
     errors.meetingTitle = [{ message: "Meeting number is required." }];
   }
   if (!values.meetingDescription) {
-    errors.meetingDescription = [{ message: "Meeting description is required." }];
+    errors.meetingDescription = [
+      { message: "Meeting description is required." },
+    ];
   }
   if (values.meetingTitle.length > 225) {
     errors.meetingDescription = [{ message: "Meeting title is too long." }];
@@ -191,16 +197,36 @@ const onFormSubmit = async ({ valid, values }: FormSubmitEvent) => {
 
     const res = await createMeeting(sendRequest);
     if (typeof res !== "number") {
-      notification.success({
-        message: "Meeting created successfully",
-        description: "You can now enter the meeting",
-      });
-      router.push({"name": 'MeetingView'});
+      //获取meeting的token->livekit server sdk
+      const meetingId = res.meetingId;
+      const tokenRes = await getMeetingToken(meetingId, userStore.username);
+      if (typeof tokenRes !== "number") {
+        console.log("tokenRes", tokenRes);
+        notification.success({
+          message: "Meeting created successfully",
+          description: "You can now enter the meeting",
+        });
+        meetingStore.setMeetingInfo(meetingId, tokenRes.token)
+        router.push({ name: "MeetingView" });
+      } else {
+        notification.error({
+          message: "Meeting token generation failed",
+          description: "Please try again",
+        });
+        //撤回会议数据库的添加
+        const res = await deleteMeeting(meetingId);
+        if (res.success){
+          notification.success({
+            message: "Meeting deleted successfully",
+            description: "You can now create a new meeting", 
+          })
+        }
+      }
     } else {
       notification.error({
         message: "Meeting creation failed",
         description: "Please try again",
-      })
+      });
     }
   }
 };

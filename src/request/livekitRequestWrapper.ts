@@ -6,7 +6,7 @@ import { message } from 'ant-design-vue';
 let expireCounter = 0;
 const MAX_RETRY_TIME = 0;
 type methodType = 'GET' | 'POST' | 'PUT' | 'DELETE'
-const BASE_URL = 'http://localhost:8080';
+const BASE_URL = 'http://localhost:7700';
 // const BASE_URL = 'http://192.168.1.104:8000';
 
 /**
@@ -15,7 +15,7 @@ const BASE_URL = 'http://localhost:8080';
  * @param body The body of the request
  * @returns The response of the backend
  */
-export const requestWrapper = async (
+export const livekitRequestWrapper = async (
   requestURL: string,
   body?: object,
   options?: {
@@ -52,7 +52,7 @@ export const requestWrapper = async (
     } else {
       if (expireCounter < MAX_RETRY_TIME) {
         expireCounter++;
-        return requestWrapper(requestURL, body, options, useAuth);
+        return livekitRequestWrapper(requestURL, body, options, useAuth);
       } else {
         expireCounter = 0;
         if (response.status === 401 && useAuth) {
