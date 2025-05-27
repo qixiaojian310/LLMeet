@@ -1,12 +1,17 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router';
+import { RouterView, useRoute } from 'vue-router';
 import Header from '@/coreComponents/Header.vue';
+import {noHeaderPages} from "@/router"
+const route = useRoute();
+
 </script>
 
 <template>
   <main class="container">
     <div class="main-layout">
-      <div class="header-view">
+      <div v-if="!noHeaderPages.some((page)=>{
+        return page === route.name
+      })" class="header-view">
         <Header />
       </div>
       <RouterView />

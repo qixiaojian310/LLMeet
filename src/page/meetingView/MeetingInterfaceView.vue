@@ -1,5 +1,6 @@
 <template>
   <div class="meeting-view-container">
+    <div class="meeting"></div>
     <div class="meeting-panel">
       <div class="content">
         <div class="video" ref="videoContainer" />
@@ -12,11 +13,19 @@
     </div>
     <div class="controls">
       <Button type="button" @click="toggleVideo">
-        <FontAwesomeIcon :icon="controllerState.video ? fas.faVideo : fas.faVideoSlash" size="2x" />
+        <FontAwesomeIcon
+          :icon="controllerState.video ? fas.faVideo : fas.faVideoSlash"
+          size="2x"
+        />
         <p>Video</p>
       </Button>
       <Button type="button" @click="toggleAudio">
-        <FontAwesomeIcon :icon="controllerState.audio ? fas.faMicrophone : fas.faMicrophoneSlash" size="2x" />
+        <FontAwesomeIcon
+          :icon="
+            controllerState.audio ? fas.faMicrophone : fas.faMicrophoneSlash
+          "
+          size="2x"
+        />
         <p>Audio</p>
       </Button>
       <Button type="button" @click="leaveMeeting">
@@ -34,19 +43,19 @@ import {
   Track,
   RemoteTrack,
   VideoPresets,
-} from 'livekit-client';
-import { ref, reactive, onMounted, onBeforeUnmount } from 'vue';
-import { Button, Fieldset } from 'primevue';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { fas } from '@fortawesome/free-solid-svg-icons';
-import { useMeetingStore } from '@/stores/meetingStore';
-import { router } from '@/router';
+} from "livekit-client";
+import { ref, reactive, onMounted, onBeforeUnmount } from "vue";
+import { Button, Fieldset } from "primevue";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import { fas } from "@fortawesome/free-solid-svg-icons";
+import { useMeetingStore } from "@/stores/meetingStore";
+import { router } from "@/router";
 
 const videoContainer = ref<HTMLDivElement | null>(null);
 const controllerState = reactive({ video: true, audio: true });
 const meetingStore = useMeetingStore();
 const token = meetingStore.meetingToken; // 请替换为后端生成的token
-const wsUrl = 'wss://hkucompcs.xyz:4431'; // 请替换为你的LiveKit服务器地址
+const wsUrl = "wss://hkucompcs.xyz:4431"; // 请替换为你的LiveKit服务器地址
 
 let room: Room;
 
@@ -68,14 +77,21 @@ onMounted(async () => {
       track.detach().forEach((el) => el.remove());
     })
     .on(RoomEvent.Disconnected, () => {
-      console.log('Disconnected from room');
+      console.log("Disconnected from room");
     });
 
   try {
     await room.connect(wsUrl, token);
     await room.localParticipant.enableCameraAndMicrophone();
+
+    // 添加本地视频显示
+    const videoPub = room.localParticipant.getTrackPublications().find(pub => pub.kind === Track.Kind.Video);
+    if (videoPub?.track && videoContainer.value) {
+      const element = videoPub.track.attach();
+      videoContainer.value.appendChild(element);
+    }
   } catch (err) {
-    console.error('LiveKit connect failed:', err);
+    console.error("LiveKit connect failed:", err);
   }
 });
 
@@ -109,9 +125,8 @@ const toggleAudio = () => {
 const leaveMeeting = () => {
   room.disconnect();
   meetingStore.clearMeetingInfo();
-  router.push({ name: 'HomeView' });
+  router.push({ name: "HomeView" });
 };
-
 </script>
 
 <style scoped lang="scss">

@@ -206,7 +206,15 @@ const onFormSubmit = async ({ valid, values }: FormSubmitEvent) => {
           message: "Meeting created successfully",
           description: "You can now enter the meeting",
         });
-        meetingStore.setMeetingInfo(meetingId, tokenRes.token)
+        meetingStore.setMeetingInfo({
+          meetingId: meetingId,
+          meetingToken: tokenRes.token,
+          meetingName: values.meetingTitle,
+          description: values.meetingDescription,
+          startTime: sendRequest.startTime,
+          endTime: sendRequest.endTime,
+          createTime: res.createTime,
+        })
         router.push({ name: "MeetingView" });
       } else {
         notification.error({
