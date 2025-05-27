@@ -1,16 +1,34 @@
 <template>
   <div class="meeting-view-container">
-    <div class="meeting"></div>
     <div class="meeting-panel">
       <div class="content">
-        <div class="video" ref="videoContainer" />
+        <div class="video">
+          <!-- 主视频区域 -->
+          <div class="main-video">
+            <div ref="mainVideoRef" />
+          </div>
+
+          <!-- 缩略图区域 -->
+          <div class="thumbnails">
+            <div
+              v-for="item in filteredRemoteVideoTracks"
+              :key="item.participantSid"
+              class="thumbnail"
+              @click="focusTrack(item.track as RemoteTrack)"
+            >
+              <div :ref="(el) => attachThumbnail(item.track as RemoteTrack, el)" />
+            </div>
+          </div>
+        </div>
       </div>
+
       <div class="controller">
         <Fieldset legend="LiveKit Room">
-          <p>远端视频将自动显示，点击下方按钮可开关摄像头和麦克风。</p>
+          <p>远端视频将自动显示，点击下方按钮可聚焦某一用户视频。</p>
         </Fieldset>
       </div>
     </div>
+
     <div class="controls">
       <Button type="button" @click="toggleVideo">
         <FontAwesomeIcon
@@ -44,20 +62,72 @@ import {
   RemoteTrack,
   VideoPresets,
 } from "livekit-client";
-import { ref, reactive, onMounted, onBeforeUnmount } from "vue";
+import {
+  ref,
+  reactive,
+  onMounted,
+  onBeforeUnmount,
+  watch,
+  ComponentPublicInstance,
+} from "vue";
 import { Button, Fieldset } from "primevue";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { fas } from "@fortawesome/free-solid-svg-icons";
 import { useMeetingStore } from "@/stores/meetingStore";
 import { router } from "@/router";
+import { computed } from "vue";
 
-const videoContainer = ref<HTMLDivElement | null>(null);
+
+const mainVideoRef = ref<HTMLDivElement | null>(null);
 const controllerState = reactive({ video: true, audio: true });
 const meetingStore = useMeetingStore();
-const token = meetingStore.meetingToken; // 请替换为后端生成的token
-const wsUrl = "wss://hkucompcs.xyz:4431"; // 请替换为你的LiveKit服务器地址
+const token = meetingStore.meetingToken;
+const wsUrl = "wss://hkucompcs.xyz:4431";
 
 let room: Room;
+interface RemoteVideoTrack {
+  participantSid: string;
+  track: RemoteTrack;
+}
+const focusedTrack = ref<RemoteTrack | null>(null);
+const remoteVideoTracks = ref<RemoteVideoTrack[]>([]);
+
+const filteredRemoteVideoTracks = computed(() =>
+  remoteVideoTracks.value.filter((item) => item.track.sid !== focusedTrack.value?.sid)
+);
+
+const attachThumbnail = (
+  track: RemoteTrack,
+  el: Element | ComponentPublicInstance | null
+) => {
+  if (!(el instanceof HTMLElement)) return;
+  const video = track.attach();
+  video.style.width = "100px";
+  video.style.height = "60px";
+  el.innerHTML = "";
+  el.appendChild(video);
+};
+
+const focusTrack = (track: RemoteTrack) => {
+  if (focusedTrack.value?.sid === track.sid) return; // 不重复赋值
+  focusedTrack.value = track;
+};
+
+watch(focusedTrack, (newTrack, oldTrack) => {
+  if (newTrack?.sid === oldTrack?.sid) return;
+  if (oldTrack) oldTrack.detach().forEach((el) => el.remove());
+  if (newTrack && mainVideoRef.value) {
+    console.log(newTrack);
+    
+    const element = newTrack.attach();
+    element.style.width = "640px";
+    element.style.height = "360px";
+    mainVideoRef.value.innerHTML = "";
+    mainVideoRef.value.appendChild(element);
+  }
+},{
+  flush: 'post'
+});
 
 onMounted(async () => {
   room = new Room({
@@ -67,14 +137,32 @@ onMounted(async () => {
   });
 
   room
-    .on(RoomEvent.TrackSubscribed, (track: RemoteTrack) => {
-      if (track.kind === Track.Kind.Video && videoContainer.value) {
-        const element = track.attach();
-        videoContainer.value.appendChild(element);
+    .on(RoomEvent.TrackSubscribed, (track: RemoteTrack, _, participant) => {
+      remoteVideoTracks.value.push({
+        participantSid: participant.sid,
+        track,
+      });
+
+      if (!focusedTrack.value) {
+        focusedTrack.value = track;
       }
     })
     .on(RoomEvent.TrackUnsubscribed, (track: RemoteTrack) => {
       track.detach().forEach((el) => el.remove());
+    })
+    // ✅ 新增对本地 video 的监听（非常重要）
+    .on(RoomEvent.LocalTrackPublished, (_, publication) => {
+      if (mainVideoRef.value) {
+        const videoPub = publication
+          .getTrackPublications()
+          .find((pub) => pub.kind === Track.Kind.Video);
+        if (videoPub?.track && mainVideoRef.value) {
+          const element = videoPub.track.attach();
+          element.style.width = "640px";
+          element.style.height = "360px";
+          mainVideoRef.value.appendChild(element);
+        }
+      }
     })
     .on(RoomEvent.Disconnected, () => {
       console.log("Disconnected from room");
@@ -83,13 +171,6 @@ onMounted(async () => {
   try {
     await room.connect(wsUrl, token);
     await room.localParticipant.enableCameraAndMicrophone();
-
-    // 添加本地视频显示
-    const videoPub = room.localParticipant.getTrackPublications().find(pub => pub.kind === Track.Kind.Video);
-    if (videoPub?.track && videoContainer.value) {
-      const element = videoPub.track.attach();
-      videoContainer.value.appendChild(element);
-    }
   } catch (err) {
     console.error("LiveKit connect failed:", err);
   }
@@ -99,10 +180,8 @@ onBeforeUnmount(() => {
   room.disconnect();
 });
 
-// 切换摄像头开关（video）
 const toggleVideo = () => {
   controllerState.video = !controllerState.video;
-
   room.localParticipant.getTrackPublications().forEach((pub) => {
     if (pub.kind === Track.Kind.Video && pub.track) {
       pub.track.mediaStreamTrack.enabled = controllerState.video;
@@ -110,10 +189,8 @@ const toggleVideo = () => {
   });
 };
 
-// 切换麦克风开关（audio）
 const toggleAudio = () => {
   controllerState.audio = !controllerState.audio;
-
   room.localParticipant.getTrackPublications().forEach((pub) => {
     if (pub.kind === Track.Kind.Audio && pub.track) {
       pub.track.mediaStreamTrack.enabled = controllerState.audio;
@@ -121,7 +198,6 @@ const toggleAudio = () => {
   });
 };
 
-// 离开会议
 const leaveMeeting = () => {
   room.disconnect();
   meetingStore.clearMeetingInfo();
@@ -154,16 +230,37 @@ const leaveMeeting = () => {
         width: 100%;
         height: 100%;
         display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
+        flex-direction: column;
         align-items: center;
 
-        video {
-          width: 320px;
-          height: 180px;
-          margin: 5px;
+        .main-video {
+          width: 640px;
+          height: 360px;
+          margin-bottom: 20px;
           background: black;
-          object-fit: cover;
+        }
+
+        .thumbnails {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          justify-content: center;
+
+          .thumbnail {
+            cursor: pointer;
+            border: 2px solid #ccc;
+            padding: 2px;
+
+            &:hover {
+              border-color: #fff;
+            }
+
+            > div {
+              width: 100px;
+              height: 60px;
+              background: black;
+            }
+          }
         }
       }
     }
