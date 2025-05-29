@@ -63,34 +63,34 @@
           </div>
         </div>
       </div>
-
+<!-- 
       <div class="controller">
         <Fieldset legend="LiveKit Room">
           <p>远端视频将自动显示，点击下方按钮可聚焦某一用户视频。</p>
         </Fieldset>
-      </div>
+      </div> -->
     </div>
 
     <div class="controls">
-      <Button type="button" @click="toggleVideo">
+      <Button type="button" severity="secondary" @click="toggleVideo">
         <FontAwesomeIcon
           :icon="controllerState.video ? fas.faVideo : fas.faVideoSlash"
           size="2x"
         />
-        <p>Video</p>
+        <p class="title">Video</p>
       </Button>
-      <Button type="button" @click="toggleAudio">
+      <Button type="button" severity="secondary" @click="toggleAudio">
         <FontAwesomeIcon
           :icon="
             controllerState.audio ? fas.faMicrophone : fas.faMicrophoneSlash
           "
           size="2x"
         />
-        <p>Audio</p>
+        <p class="title">Audio</p>
       </Button>
-      <Button type="button" @click="leaveMeeting">
+      <Button type="button" severity="secondary" @click="leaveMeeting">
         <FontAwesomeIcon :icon="fas.faSignOutAlt" size="2x" />
-        <p>Leave Meeting</p>
+        <p class="title">Leave</p>
       </Button>
     </div>
   </div>
@@ -112,7 +112,7 @@ import {
   watch,
   ComponentPublicInstance,
 } from "vue";
-import { Button, Fieldset } from "primevue";
+import { Button } from "primevue";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { fas } from "@fortawesome/free-solid-svg-icons";
 import { useMeetingStore } from "@/stores/meetingStore";
@@ -462,13 +462,16 @@ const leaveMeeting = () => {
     display: flex;
     justify-content: center;
     gap: 20px;
-    height: 100px;
+    height: 80px;
     background: #272626;
 
     .p-button {
       display: flex;
       flex-direction: column;
       align-items: center;
+    }
+    .title{
+      margin: 0;
     }
   }
 }

@@ -1,10 +1,7 @@
 package com.videomeeting.service.impl;
 
 import com.videomeeting.domain.Meeting;
-import com.videomeeting.dto.MeetingCreateDto;
-import com.videomeeting.dto.MeetingCreateResponse;
-import com.videomeeting.dto.MeetingDeleteDto;
-import com.videomeeting.dto.MeetingDeleteResponse;
+import com.videomeeting.dto.*;
 import com.videomeeting.mapper.MeetingMapper;
 import com.videomeeting.service.MeetingService;
 import com.videomeeting.utils.JwtUserContextUtil;
@@ -22,8 +19,17 @@ public class MeetingServiceImpl implements MeetingService {
     MeetingMapper meetingMapper;
 
     @Override
-    public Meeting getMeetingById(String meetingId) {
-        return meetingMapper.findByMeetingId(meetingId);
+    public ResponseEntity<MeetingGetResponse> getMeetingById(MeetingGetDto meetingGetDto) {
+        Meeting meeting = meetingMapper.findByMeetingId(meetingGetDto.getMeetingId());
+        if (meeting == null){
+            MeetingGetResponse response = new MeetingGetResponse();
+            response.setSuccess(false);
+            return ResponseEntity.ok(response);
+        }
+        MeetingGetResponse response = new MeetingGetResponse();
+        response.setMeeting(meeting);
+        response.setSuccess(true);
+        return ResponseEntity.ok(response);
     }
 
     @Override
