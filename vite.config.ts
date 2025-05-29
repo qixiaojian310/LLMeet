@@ -3,6 +3,7 @@ import vue from "@vitejs/plugin-vue";
 import path from "path";
 import Components from 'unplugin-vue-components/vite';
 import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers';
+import vueDevTools from 'vite-plugin-vue-devtools'
 
 const host = process.env.TAURI_DEV_HOST;
 
@@ -16,6 +17,7 @@ export default defineConfig(async () => ({
         }),
       ],
     }),
+    vueDevTools()
   ],
   resolve: {
     alias: {

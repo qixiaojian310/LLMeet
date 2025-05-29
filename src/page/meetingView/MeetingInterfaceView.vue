@@ -1,22 +1,64 @@
 <template>
   <div class="meeting-view-container">
+    <div class="header-panel">
+      <Button
+        severity="secondary"
+        style="position: relative"
+        @click="
+          () => {
+            openMeetingInfo = !openMeetingInfo;
+          }
+        "
+      >
+        <img height="35px" :src="iconPath" alt="Avatar" />
+        <span>Meeting Info</span>
+      </Button>
+      <div v-if="openMeetingInfo" class="meeting-info">
+        <div
+          class="meeting-info-item"
+          v-for="item in meetingInfo"
+          :key="item.title"
+        >
+          <p class="title">{{ item.title }}</p>
+          <p class="value">{{ item.value }}</p>
+        </div>
+      </div>
+    </div>
     <div class="meeting-panel">
       <div class="content">
         <div class="video">
           <!-- 主视频区域 -->
           <div class="main-video">
             <div ref="mainVideoRef" />
+            <Button
+              class="expander"
+              severity="secondary"
+              @click="
+                () => {
+                  openThumbnails = !openThumbnails;
+                }
+              "
+            >
+              <FontAwesomeIcon
+                v-if="openThumbnails"
+                :icon="fas.faChevronRight"
+                size="1x"
+              />
+              <FontAwesomeIcon v-else :icon="fas.faChevronLeft" size="1x" />
+            </Button>
           </div>
 
           <!-- 缩略图区域 -->
-          <div class="thumbnails">
+          <div :class="`thumbnails ${openThumbnails ? 'open' : 'closed'}`">
             <div
-              v-for="item in filteredRemoteVideoTracks"
+              v-for="item in attachedTracks.filter(
+                (item) => item.participantSid !== focusedParticipantSid
+              )"
               :key="item.participantSid"
               class="thumbnail"
-              @click="focusTrack(item.track as RemoteTrack)"
+              @click="focusedParticipantSid = item.participantSid"
             >
-              <div :ref="(el) => attachThumbnail(item.track as RemoteTrack, el)" />
+              <div :ref="(el) => mountVideo(el, item.participantSid)" />
             </div>
           </div>
         </div>
@@ -77,93 +119,182 @@ import { useMeetingStore } from "@/stores/meetingStore";
 import { router } from "@/router";
 import { computed } from "vue";
 
-
 const mainVideoRef = ref<HTMLDivElement | null>(null);
 const controllerState = reactive({ video: true, audio: true });
 const meetingStore = useMeetingStore();
+const openThumbnails = ref(false);
+const openMeetingInfo = ref(false);
 const token = meetingStore.meetingToken;
 const wsUrl = "wss://hkucompcs.xyz:4431";
-
+const iconPath = new URL("@/assets/icon/white.png", import.meta.url).href;
 let room: Room;
-interface RemoteVideoTrack {
-  participantSid: string;
-  track: RemoteTrack;
-}
-const focusedTrack = ref<RemoteTrack | null>(null);
-const remoteVideoTracks = ref<RemoteVideoTrack[]>([]);
 
-const filteredRemoteVideoTracks = computed(() =>
-  remoteVideoTracks.value.filter((item) => item.track.sid !== focusedTrack.value?.sid)
+interface AttachedTrack {
+  participantSid: string;
+  track: RemoteTrack | Track;
+  videoElement: HTMLMediaElement;
+}
+interface MeetingInfoItem {
+  title: string;
+  value: string;
+}
+const meetingInfo = computed<MeetingInfoItem[]>(() => {
+  return [
+    {
+      title: "Meeting Name",
+      value: meetingStore.meetingName,
+    },
+    {
+      title: "Meeting ID",
+      value: meetingStore.meetingId,
+    },
+    {
+      title: "Meeting Description",
+      value: meetingStore.description,
+    },
+    {
+      title: "Meeting Start Time",
+      value: meetingStore.startTime,
+    },
+    {
+      title: "Meeting End Time",
+      value: meetingStore.endTime,
+    },
+    {
+      title: "Meeting Create Time",
+      value: meetingStore.createTime,
+    },
+  ];
+});
+const attachedTracks = ref<AttachedTrack[]>([]);
+const focusedParticipantSid = ref<string | null>(null);
+
+// 存储每个缩略图容器 DOM 的引用
+const thumbnailContainers = ref<Record<string, HTMLElement>>({});
+
+// 主视频区域挂载
+watch(
+  [focusedParticipantSid, attachedTracks],
+  () => {
+    if (!mainVideoRef.value) return;
+    const focused = attachedTracks.value.find(
+      (item) => item.participantSid === focusedParticipantSid.value
+    );
+
+    mainVideoRef.value.innerHTML = "";
+    if (focused) {
+      focused.videoElement.style.width = "100%";
+      focused.videoElement.style.height = "100%";
+      focused.videoElement.style.objectFit = "contain";
+      mainVideoRef.value.appendChild(focused.videoElement);
+      focused.videoElement.muted = true;
+    }
+  },
+  { flush: "post" }
 );
 
-const attachThumbnail = (
-  track: RemoteTrack,
-  el: Element | ComponentPublicInstance | null
+const addOrUpdateAttachedTrack = (
+  arr: AttachedTrack[],
+  newTrack: AttachedTrack
+) => {
+  const index = arr.findIndex(
+    (item) => item.participantSid === newTrack.participantSid
+  );
+  if (index !== -1) {
+    // 替换旧元素，避免重复
+    arr[index] = newTrack;
+  } else {
+    arr.push(newTrack);
+  }
+};
+
+// 挂载视频元素到缩略图区域
+const mountVideo = (
+  el: Element | ComponentPublicInstance | null,
+  participantSid: string
 ) => {
   if (!(el instanceof HTMLElement)) return;
-  const video = track.attach();
-  video.style.width = "100px";
-  video.style.height = "60px";
-  el.innerHTML = "";
-  el.appendChild(video);
-};
+  thumbnailContainers.value[participantSid] = el;
 
-const focusTrack = (track: RemoteTrack) => {
-  if (focusedTrack.value?.sid === track.sid) return; // 不重复赋值
-  focusedTrack.value = track;
-};
+  const trackItem = attachedTracks.value.find(
+    (item) => item.participantSid === participantSid
+  );
+  console.log(trackItem);
 
-watch(focusedTrack, (newTrack, oldTrack) => {
-  if (newTrack?.sid === oldTrack?.sid) return;
-  if (oldTrack) oldTrack.detach().forEach((el) => el.remove());
-  if (newTrack && mainVideoRef.value) {
-    console.log(newTrack);
-    
-    const element = newTrack.attach();
-    element.style.width = "640px";
-    element.style.height = "360px";
-    mainVideoRef.value.innerHTML = "";
-    mainVideoRef.value.appendChild(element);
+  if (trackItem && !el.contains(trackItem.videoElement)) {
+    el.innerHTML = "";
+    const video = trackItem.videoElement;
+    video.style.width = "100%";
+    video.style.height = "auto";
+    video.style.objectFit = "contain";
+    el.appendChild(video);
+    video.muted = true;
   }
-},{
-  flush: 'post'
-});
+};
 
 onMounted(async () => {
   room = new Room({
     adaptiveStream: true,
     dynacast: true,
     videoCaptureDefaults: { resolution: VideoPresets.h720.resolution },
+    webAudioMix: true,
   });
 
   room
     .on(RoomEvent.TrackSubscribed, (track: RemoteTrack, _, participant) => {
-      remoteVideoTracks.value.push({
+      console.log("Track subscribed");
+
+      const videoElement = track.attach();
+      videoElement.muted = true;
+      addOrUpdateAttachedTrack(attachedTracks.value as AttachedTrack[], {
         participantSid: participant.sid,
         track,
+        videoElement,
       });
 
-      if (!focusedTrack.value) {
-        focusedTrack.value = track;
+      if (!focusedParticipantSid.value) {
+        focusedParticipantSid.value = participant.sid;
       }
     })
     .on(RoomEvent.TrackUnsubscribed, (track: RemoteTrack) => {
       track.detach().forEach((el) => el.remove());
+
+      const index = attachedTracks.value.findIndex(
+        (item) => item.track.sid === track.sid
+      );
+      if (index !== -1) {
+        attachedTracks.value.splice(index, 1);
+      }
+
+      if (focusedParticipantSid.value === track.sid) {
+        focusedParticipantSid.value =
+          attachedTracks.value[0]?.participantSid || null;
+      }
     })
-    // ✅ 新增对本地 video 的监听（非常重要）
     .on(RoomEvent.LocalTrackPublished, (_, publication) => {
-      if (mainVideoRef.value) {
-        const videoPub = publication
-          .getTrackPublications()
-          .find((pub) => pub.kind === Track.Kind.Video);
-        if (videoPub?.track && mainVideoRef.value) {
-          const element = videoPub.track.attach();
-          element.style.width = "640px";
-          element.style.height = "360px";
-          mainVideoRef.value.appendChild(element);
+      const videoPub = publication
+        .getTrackPublications()
+        .find((pub) => pub.kind === Track.Kind.Video);
+      if (videoPub?.track) {
+        const videoElement = videoPub.track.attach();
+
+        addOrUpdateAttachedTrack(attachedTracks.value as AttachedTrack[], {
+          participantSid: "local",
+          track: videoPub.track,
+          videoElement,
+        });
+
+        if (!focusedParticipantSid.value) {
+          focusedParticipantSid.value = "local";
         }
       }
     })
+    .on(RoomEvent.AudioPlaybackStatusChanged, () => {
+      if (!room.canPlaybackAudio) {
+        console.log("Audio playback is disabled");
+      }
+    })
+
     .on(RoomEvent.Disconnected, () => {
       console.log("Disconnected from room");
     });
@@ -212,6 +343,40 @@ const leaveMeeting = () => {
   width: 100%;
   height: 100%;
 
+  .header-panel {
+    display: flex;
+    height: 40px;
+    background: #27272a;
+    position: relative;
+    .meeting-info {
+      display: flex;
+      flex-direction: column;
+      position: absolute;
+      width: 400px;
+      background: #323030;
+      top: 130%;
+      z-index: 9999;
+      box-shadow: 0 0 10px #1a1818;
+      border-radius: 10px;
+      gap: 15px;
+      padding: 10px;
+      .meeting-info-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        .title {
+          color: #ada6a6;
+        }
+        .value {
+          color: #f3f3eb;
+        }
+        p {
+          margin: 0;
+        }
+      }
+    }
+  }
+
   .meeting-panel {
     display: flex;
     width: 100%;
@@ -230,22 +395,41 @@ const leaveMeeting = () => {
         width: 100%;
         height: 100%;
         display: flex;
-        flex-direction: column;
         align-items: center;
-
         .main-video {
-          width: 640px;
-          height: 360px;
-          margin-bottom: 20px;
-          background: black;
+          flex: 1;
+          height: 100%;
+          background: rgb(48, 49, 47);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          position: relative;
+          .expander {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translate(0, -60%);
+            background: #00000088;
+          }
         }
 
         .thumbnails {
           display: flex;
-          flex-wrap: wrap;
+          flex-direction: column;
           gap: 10px;
-          justify-content: center;
-
+          justify-content: start;
+          overflow: auto;
+          background: #00000088;
+          transition: width 0.2s ease;
+          flex-direction: column;
+          height: 100%;
+          &.open {
+            width: 200px;
+          }
+          &.closed {
+            width: 0;
+            visibility: hidden;
+          }
           .thumbnail {
             cursor: pointer;
             border: 2px solid #ccc;
@@ -256,9 +440,11 @@ const leaveMeeting = () => {
             }
 
             > div {
-              width: 100px;
-              height: 60px;
+              width: 100%;
               background: black;
+              display: flex;
+              justify-content: center;
+              align-items: center;
             }
           }
         }

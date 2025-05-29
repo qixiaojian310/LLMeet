@@ -29,6 +29,7 @@
       <IftaLabel>
         <InputText
           id="meetingDescription"
+          name="meetingDescription"
           style="width: 100%; resize: none; font-size: 1rem"
           type="text"
           fluid
@@ -196,12 +197,13 @@ const onFormSubmit = async ({ valid, values }: FormSubmitEvent) => {
     console.log(sendRequest);
 
     const res = await createMeeting(sendRequest);
+    console.log(res);
+    
     if (typeof res !== "number") {
       //获取meeting的token->livekit server sdk
       const meetingId = res.meetingId;
       const tokenRes = await getMeetingToken(meetingId, userStore.username);
       if (typeof tokenRes !== "number") {
-        console.log("tokenRes", tokenRes);
         notification.success({
           message: "Meeting created successfully",
           description: "You can now enter the meeting",
@@ -211,9 +213,9 @@ const onFormSubmit = async ({ valid, values }: FormSubmitEvent) => {
           meetingToken: tokenRes.token,
           meetingName: values.meetingTitle,
           description: values.meetingDescription,
-          startTime: sendRequest.startTime,
-          endTime: sendRequest.endTime,
-          createTime: res.createTime,
+          startTime: new Date(sendRequest.startTime).toISOString().slice(0, 19).replace('T', ' '),
+          endTime: new Date(sendRequest.endTime).toISOString().slice(0, 19).replace('T', ' '),
+          createTime: new Date(res.createTime).toISOString().slice(0, 19).replace('T', ' '),
         })
         router.push({ name: "MeetingView" });
       } else {

@@ -44,9 +44,13 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { fas } from '@fortawesome/free-solid-svg-icons';
 import { router } from '@/router';
 import { message } from 'ant-design-vue';
+import { useUserStore } from '@/stores/userStore';
+import { onMounted } from 'vue';
+
+const userStore = useUserStore()
 
 const initialValues = reactive({
-  username: '',
+  username: userStore.username,
   meetingNumber: '',
   meetingOption: []
 });
@@ -73,6 +77,11 @@ const onFormSubmit = ({ valid }: any) => {
     router.push('/meeting');
   }
 };
+
+onMounted(() => {
+  console.log('form mounted',userStore.username);
+   
+})
 
 </script>
 

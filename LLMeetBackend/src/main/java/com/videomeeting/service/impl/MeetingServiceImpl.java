@@ -47,6 +47,7 @@ public class MeetingServiceImpl implements MeetingService {
 
         MeetingCreateResponse response = new MeetingCreateResponse();
         response.setMeetingId(meetingId);
+        response.setCreateTime(createTime);
         return ResponseEntity.ok(response);
     }
 
