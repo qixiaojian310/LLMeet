@@ -1,47 +1,121 @@
 <template>
-  <Form v-slot="$form" :initialValues :resolver @submit="onFormSubmit" class="form">
+  <Form
+    v-slot="$form"
+    :initialValues
+    :resolver
+    @submit="onFormSubmit"
+    class="form"
+  >
     <div class="form-text">
       <IftaLabel>
-        <InputText id="meetingName" name="meetingName" type="text" placeholder="Meeting number" fluid />
-        <label for="meetingName">Meeting Name</label>
-        <Message v-if="$form.meetingName?.invalid" severity="error" size="small" variant="simple">{{
-          $form.meetingName.error?.message }}</Message>
+        <InputText
+          id="meetingTitle"
+          name="meetingTitle"
+          type="text"
+          placeholder="Meeting name"
+          fluid
+        />
+        <label for="meetingTitle">Meeting Name</label>
+        <Message
+          v-if="$form.meetingTitle?.invalid"
+          severity="error"
+          size="small"
+          variant="simple"
+          >{{ $form.meetingTitle.error?.message }}</Message
+        >
       </IftaLabel>
     </div>
     <div class="form-text">
       <IftaLabel>
-        <DatePicker id="meetingStartTime" name="meetingStartTime" type="text" placeholder="Meeting number" fluid
-          show-time hourFormat="24" />
+        <InputText
+          id="meetingDescription"
+          name="meetingDescription"
+          style="width: 100%; resize: none; font-size: 1rem"
+          type="text"
+          fluid
+        />
+        <label for="meetingDescription">Meeting Description</label>
+        <Message
+          v-if="$form.meetingTitle?.invalid"
+          severity="error"
+          size="small"
+          variant="simple"
+          >{{ $form.meetingTitle.error?.message }}</Message
+        >
+      </IftaLabel>
+    </div>
+    <div class="form-text">
+      <IftaLabel>
+        <DatePicker
+          id="meetingStartTime"
+          name="meetingStartTime"
+          type="text"
+          placeholder="Meeting number"
+          fluid
+          show-time
+          hourFormat="24"
+        />
         <label for="meetingStartTime">Meeting Start Time</label>
-        <Message v-if="$form.meetingStartTime?.invalid" severity="error" size="small" variant="simple">{{
-          $form.meetingStartTime.error?.message }}</Message>
+        <Message
+          v-if="$form.meetingStartTime?.invalid"
+          severity="error"
+          size="small"
+          variant="simple"
+          >{{ $form.meetingStartTime.error?.message }}</Message
+        >
       </IftaLabel>
     </div>
     <div class="form-text">
       <IftaLabel>
-        <Select label-id="meetingDuration" name="meetingDuration" :options="['30 minutes', '1 hour', '2 hours']" fluid>
+        <Select
+          label-id="meetingDuration"
+          name="meetingDuration"
+          :options="durationOptions"
+          option-label="label"
+          option-value="value"
+          fluid
+        >
           <template #footer>
-            <Button label="Customize Time" fluid severity="secondary" icon="pi pi-plus"></Button>
+            <Button
+              label="Customize Time"
+              fluid
+              severity="secondary"
+              icon="pi pi-plus"
+            ></Button>
           </template>
         </Select>
         <label for="meetingDuration">Meeting Duration</label>
 
-        <Message v-if="$form.meetingDuration?.invalid" severity="error" size="small" variant="simple">{{
-          $form.meetingDuration.error?.message }}</Message>
+        <Message
+          v-if="$form.meetingDuration?.invalid"
+          severity="error"
+          size="small"
+          variant="simple"
+          >{{ $form.meetingDuration.error?.message }}</Message
+        >
       </IftaLabel>
     </div>
     <div class="form-check-box">
       <p>Meeting option</p>
       <div class="form-check">
-        <Checkbox id="openMic" name="meetingOption" inputId="openMic" value="openMic" />
+        <Checkbox
+          id="openMic"
+          name="meetingOption"
+          inputId="openMic"
+          value="openMic"
+        />
         <label for="openMic">Open Mic</label>
       </div>
       <div class="form-check">
-        <Checkbox id="openCamera" name="meetingOption" inputId="openCamera" value="openCamera" />
+        <Checkbox
+          id="openCamera"
+          name="meetingOption"
+          inputId="openCamera"
+          value="openCamera"
+        />
         <label for="openCamera">Open Camera</label>
       </div>
     </div>
-    <Toast />
     <Button type="submit" severity="secondary">
       <FontAwesomeIcon :icon="fas.faChampagneGlasses" />
       Enter Meeting
@@ -50,51 +124,122 @@
 </template>
 
 <script setup lang="ts">
+import { Form, FormSubmitEvent } from "@primevue/forms";
+import {
+  Button,
+  IftaLabel,
+  InputText,
+  Message,
+  Checkbox,
+  DatePicker,
+  Select,
+} from "primevue";
+import { reactive } from "vue";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import { fas } from "@fortawesome/free-solid-svg-icons";
+import { router } from "@/router";
+import { notification } from "ant-design-vue";
+import { createMeeting, deleteMeeting, getMeetingToken, MeetingInfo } from "@/request/meeting";
+import { useUserStore } from "@/stores/userStore";
+import { useMeetingStore } from "@/stores/meetingStore";
 
-import { Form } from '@primevue/forms';
-import { Button, IftaLabel, InputText, Message, Toast, Checkbox, DatePicker, Select } from 'primevue';
-import { reactive } from 'vue';
-import { useToast } from 'primevue/usetoast';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { fas } from '@fortawesome/free-solid-svg-icons';
-import { router } from '@/router';
-
-const toast = useToast();
-
+const userStore = useUserStore();
+const meetingStore = useMeetingStore();
 const initialValues = reactive({
-  username: '',
-  meetingName: '',
+  username: "",
+  meetingTitle: "",
+  meetingDescription: "",
   meetingStartTime: new Date(),
-  meetingDuration: "30 minutes",
+  meetingDuration: 30,
 });
+
+const durationOptions = reactive([
+  { label: "30 minutes", value: 30 },
+  { label: "1 hour", value: 60 },
+  { label: "2 hours", value: 120 },
+]);
 
 const resolver = ({ values }: any) => {
   const errors: any = {};
 
   if (!values.username) {
-    errors.username = [{ message: 'Username is required.' }];
+    errors.username = [{ message: "Username is required." }];
   }
-  if (!values.meetingName) {
-    errors.meetingName = [{ message: 'Meeting number is required.' }];
+  if (!values.meetingTitle) {
+    errors.meetingTitle = [{ message: "Meeting number is required." }];
+  }
+  if (!values.meetingDescription) {
+    errors.meetingDescription = [
+      { message: "Meeting description is required." },
+    ];
+  }
+  if (values.meetingTitle.length > 225) {
+    errors.meetingDescription = [{ message: "Meeting title is too long." }];
   }
 
   return {
     values, // (Optional) Used to pass current form values to submit event.
-    errors
+    errors,
   };
 };
 
-const onFormSubmit = ({ valid }: any) => {
+const onFormSubmit = async ({ valid, values }: FormSubmitEvent) => {
   if (valid) {
-    toast.add({
-      severity: 'success',
-      summary: 'Form is submitted.',
-      life: 3000
-    });
-    router.push('/meeting');
+    //转换时间
+    const sendRequest: MeetingInfo = {
+      title: values.meetingTitle,
+      description: values.meetingDescription,
+      startTime: new Date(values.meetingStartTime).toISOString(),
+      endTime: new Date(
+        values.meetingStartTime.getTime() + values.meetingDuration * 60 * 1000
+      ).toISOString(),
+    };
+    console.log(sendRequest);
+
+    const res = await createMeeting(sendRequest);
+    console.log(res);
+    
+    if (typeof res !== "number") {
+      //获取meeting的token->livekit server sdk
+      const meetingId = res.meetingId;
+      const tokenRes = await getMeetingToken(meetingId, userStore.username);
+      if (typeof tokenRes !== "number") {
+        notification.success({
+          message: "Meeting created successfully",
+          description: "You can now enter the meeting",
+        });
+        meetingStore.setMeetingInfo({
+          meetingId: meetingId,
+          meetingToken: tokenRes.token,
+          meetingName: values.meetingTitle,
+          description: values.meetingDescription,
+          startTime: new Date(sendRequest.startTime).toISOString().slice(0, 19).replace('T', ' '),
+          endTime: new Date(sendRequest.endTime).toISOString().slice(0, 19).replace('T', ' '),
+          createTime: new Date(res.createTime).toISOString().slice(0, 19).replace('T', ' '),
+        })
+        router.push({ name: "MeetingView" });
+      } else {
+        notification.error({
+          message: "Meeting token generation failed",
+          description: "Please try again",
+        });
+        //撤回会议数据库的添加
+        const res = await deleteMeeting(meetingId);
+        if (res.success){
+          notification.success({
+            message: "Meeting deleted successfully",
+            description: "You can now create a new meeting", 
+          })
+        }
+      }
+    } else {
+      notification.error({
+        message: "Meeting creation failed",
+        description: "Please try again",
+      });
+    }
   }
 };
-
 </script>
 
 <style scoped lang="scss">

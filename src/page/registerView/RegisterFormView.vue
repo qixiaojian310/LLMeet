@@ -47,16 +47,55 @@
         >
       </IftaLabel>
     </div>
+    <div class="form-text">
+      <IftaLabel>
+        <InputText
+          id="repeatPassword"
+          name="repeatPassword"
+          type="password"
+          placeholder="Repeat Password"
+          fluid
+        />
+        <label for="password">Repeat Password</label>
+
+        <Message
+          v-if="$form.repeatPassword?.invalid"
+          severity="error"
+          size="small"
+          variant="simple"
+          >{{ $form.repeatPassword.error?.message }}</Message
+        >
+      </IftaLabel>
+    </div>
+    <div class="form-text">
+      <IftaLabel>
+        <InputText
+          id="email"
+          name="email"
+          placeholder="Email"
+          fluid
+        />
+        <label for="email">Email</label>
+
+        <Message
+          v-if="$form.email?.invalid"
+          severity="error"
+          size="small"
+          variant="simple"
+          >{{ $form.email.error?.message }}</Message
+        >
+      </IftaLabel>
+    </div>
     <div class="form-check-box">
       <div class="goto-link">
         <Button variant="link" @click="()=>{
-          router.push({name: 'RegisterForm'})
-        }"> Go to register </Button>
+          router.push({name:'LoginForm'})
+        }"> Go to Login </Button>
       </div>
     </div>
     <Button type="submit" severity="secondary">
       <FontAwesomeIcon :icon="fas.faChampagneGlasses" />
-      Login
+      Register
     </Button>
   </Form>
 </template>
@@ -67,24 +106,48 @@ import { Button, IftaLabel, InputText, Message } from "primevue";
 import { reactive } from "vue";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { fas } from "@fortawesome/free-solid-svg-icons";
-import { signin } from "@/request/authorization";
+import { signup } from "@/request/authorization";
 import { router } from "@/router";
-import { message } from 'ant-design-vue';
+import { message } from 'ant-design-vue'
 import { useUserStore } from "@/stores/userStore";
 
+const userStore = useUserStore()
 const initialValues = reactive({
   username: "",
   password: "",
+  repeatPassword: "",
+  email: "",
 });
 
 const resolver = ({ values }: any) => {
   const errors: any = {};
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/;
 
   if (!values.username) {
     errors.username = [{ message: "Username is required." }];
   }
   if (!values.password) {
     errors.password = [{ message: "Password is required." }];
+  } else if (!passwordRegex.test(values.password)) {
+    errors.repeatPassword = [
+      {
+        message:
+          "Password must include uppercase, lowercase, number and special character.",
+      },
+    ];
+  } else if (values.password.length < 8) {
+    errors.password = [
+      { message: "Password must be at least 8 characters long." },
+    ];
+  }
+  if (values.repeatPassword !== values.password) {
+    errors.repeatPassword = [{ message: "Your password is not same." }];
+  }
+  if (!values.email) {
+    errors.email = [{ message: "Email is required." }];
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
+    errors.email = [{ message: "Invalid email format." }];
   }
 
   return {
@@ -93,20 +156,20 @@ const resolver = ({ values }: any) => {
   };
 };
 
-const userStore = useUserStore()
-
 const onFormSubmit = async (e: FormSubmitEvent) => {
   if (e.valid) {
-    const res = await signin({
+    const res = await signup({
       username: e.values.username,
       password: e.values.password,
+      email: e.values.email,
     });
+    
     if (typeof res !== "number") {
-      userStore.login(e.values.username);
-      router.push({ path: "/home" });
-      message.success('Login successful');
+      userStore.login(e.values.username)
+      await router.push({ name: "LoginForm" });
+      message.success("Register successful, you can login now.")
     } else {
-      message.error('Login failed, please check your username and password');
+      message.error("Register failed, Username or password is incorrect.")
     }
   }
 };
@@ -158,3 +221,4 @@ const onFormSubmit = async (e: FormSubmitEvent) => {
   }
 }
 </style>
+

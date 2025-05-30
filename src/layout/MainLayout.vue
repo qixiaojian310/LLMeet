@@ -4,7 +4,7 @@
       <Toolbar :buttons="navigationItems" />
     </div>
     <div class="main-panel-box">
-      <div class="title">{{ router.currentRoute.value.name }}</div>
+      <div class="title">{{ router.currentRoute.value.meta.title }}</div>
       <div class="content">
         <RouterView />
       </div>
@@ -14,7 +14,6 @@
 
 <script setup lang="ts">
 import Toolbar from '@/coreComponents/Toolbar.vue';
-import Header from '@/coreComponents/Header.vue';
 import { fas } from '@fortawesome/free-solid-svg-icons';
 import { ref } from 'vue';
 import { RouterView } from 'vue-router';

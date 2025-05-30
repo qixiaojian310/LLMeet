@@ -1,10 +1,10 @@
-import { createWebHistory, createRouter } from "vue-router";
+import { createWebHistory, createRouter, RouteRecordRaw } from "vue-router";
 
 import MainLayout from "@/layout/MainLayout.vue";
 import RegisterLayout from "@/layout/RegisterLayout.vue";
 import MeetingLayout from "@/layout/MeetingLayout.vue";
 
-const routes = [
+const routes:RouteRecordRaw[] = [
   {
     path: "/",
     redirect: "/register",
@@ -13,11 +13,47 @@ const routes = [
     path: "/home",
     component: MainLayout,
     children: [
-      { path: "", name: 'Home View', component: () => import("@/page/mainView/HomeView.vue") },
-      { path: 'meeting-join-form', name: 'Join a meeting', component: () => import('@/page/mainView/MeetingJoinFormView.vue')},
-      { path: 'meeting-schedule-form', name:'Create a meeting', component: () => import('@/page/mainView/MeetingScheduleFormView.vue')},
-      { path: 'conference-records', name:'Conference Records', component: () => import('@/page/mainView/ConferenceRecordsView.vue')},
-      { path: 'conference-record/:id', name:'Conference Record', component: () => import('@/page/mainView/ConferenceRecordConvertView.vue')}
+      {
+        path: "",
+        name: "HomeView",
+        component: () => import("@/page/mainView/HomeView.vue"),
+        meta: {
+          title: "Home",
+        }
+      },
+      {
+        path: "meeting-join-form",
+        name: "JoinMeeting",
+        component: () => import("@/page/mainView/MeetingJoinFormView.vue"),
+        meta: {
+          title: "Join a meeting",
+        }
+      },
+      {
+        path: "meeting-schedule-form",
+        name: "CreateMeeting",
+        component: () => import("@/page/mainView/MeetingScheduleFormView.vue"),
+        meta: {
+          title: "Create a meeting", 
+        }
+      },
+      {
+        path: "conference-records",
+        name: "ConferenceRecords",
+        component: () => import("@/page/mainView/ConferenceRecordsView.vue"),
+        meta: {
+          title: "Conference Records", 
+        }
+      },
+      {
+        path: "conference-record/:id",
+        name: "ConferenceRecord",
+        component: () =>
+          import("@/page/mainView/ConferenceRecordConvertView.vue"),
+        meta: {
+          title: "Conference Record", 
+        }
+      },
     ],
   },
   {
@@ -25,17 +61,38 @@ const routes = [
     component: RegisterLayout,
     children: [
       { path: "", redirect: "/register/login-form" },
-      { path: "login-form", name: 'Login Form', component: () => import("@/page/registerView/LoginFormView.vue")},
-      // { path: "/register-form", name: 'Register Form', component: () => import("@/page/RegisterFormView.vue")},
-    ]
+      {
+        path: "login-form",
+        name: "LoginForm",
+        component: () => import("@/page/registerView/LoginFormView.vue"),
+        meta: {
+          title: "Login", 
+        }
+      },
+      {
+        path: "register-form",
+        name: "RegisterForm",
+        component: () => import("@/page/registerView/RegisterFormView.vue"),
+        meta: {
+          title: "Register", 
+        }
+      },
+    ],
   },
   {
     path: "/meeting",
     component: MeetingLayout,
     children: [
-      { path: "", name: 'Meeting View', component: () => import("@/page/meetingView/MeetingInterfaceView.vue") },
+      {
+        path: "",
+        name: "MeetingView",
+        component: () => import("@/page/meetingView/MeetingInterfaceView.vue"),
+        meta: {
+          title: "Meeting", 
+        }
+      },
     ],
-  }
+  },
 ];
 
 export const router = createRouter({
@@ -43,4 +100,15 @@ export const router = createRouter({
   routes,
 });
 
+export const noHeaderPages = [
+  "MeetingView",
+]
+
+router.beforeEach(async (to, from, next) => {
+  if (to.name === "/home" && from.name === "LoginForm") {
+    next("/home");
+  } else {
+    next();
+  }
+});
 
