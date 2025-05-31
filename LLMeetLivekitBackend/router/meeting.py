@@ -28,7 +28,7 @@ class BotRequest(BaseModel):
 # 全局保存当前的 Room 引用（单例 Bot）
 room: Optional[livekit_rtc.Room] = None
 recorders: dict[str, asyncio.Task] = {}      # pub_sid ➜ record_task
-
+bot_task: Optional[asyncio.Task] = None
 
 # -----------------------------
 # 2. Bot 主逻辑：run_bot()
@@ -86,6 +86,7 @@ async def run_bot(room_name: str, bot_identity: str):
 
             # 这里指定 VideoStream 输出为 RGB24，每帧的数据就是 RGB24 原始字节
             video_stream = livekit_rtc.VideoStream(track, format=livekit_rtc.VideoBufferType.RGB24)
+            target_size = (1920, 1080)
             now_str = datetime.now().strftime("%Y%m%d_%H%M%S")
             os.makedirs("recordings", exist_ok=True)
             filename = f"recordings/recording_{participant.identity}_{now_str}.avi"
@@ -97,17 +98,20 @@ async def run_bot(room_name: str, bot_identity: str):
                 try:
                     # 异步遍历每一帧
                     async for frame_event in video_stream:
+
                         buffer = frame_event.frame
                         # buffer.data 是一个 memoryview，长度 = width * height * 3（RGB24）
                         # 先转为 numpy，再 reshape 成 (height, width, 3)，便于 OpenCV 操作
                         arr = np.frombuffer(buffer.data, dtype=np.uint8)
                         arr = arr.reshape((buffer.height, buffer.width, 3))  # RGB
+                        logger.info(f"[Bot] 收到一帧视频，宽高：{buffer.width}x{buffer.height}")
 
                         # OpenCV 的 VideoWriter 需要 BGR，所以先把 RGB 转 BGR
                         bgr_frame = cv2.cvtColor(arr, cv2.COLOR_RGB2BGR)
-
+                        bgr_frame = cv2.resize(bgr_frame, target_size)
                         # 第一次拿到帧时，初始化 VideoWriter
                         if writer is None:
+                            logger.info("[Bot] 初始化 VideoWriter")
                             h, w, _ = bgr_frame.shape
                             # 使用 mp4v 编码，24 帧率
                             fourcc = cv2.VideoWriter_fourcc(*"MJPG")
@@ -119,17 +123,17 @@ async def run_bot(room_name: str, bot_identity: str):
                             )
                             if not writer.isOpened():
                                 logger.error("[Bot] VideoWriter 打开失败，请检查编解码器支持")
-                                return
-
+                                return                            
                         writer.write(bgr_frame)
 
                 except asyncio.CancelledError:            # stop_bot 调用了 task.cancel()
-                        pass                                   # 跳到 finally
+                    pass                                   # 跳到 finally
                 except Exception as exc:
                     logger.error(f"[Bot] 录制过程中发生错误：{exc}")
                 finally:
                     await video_stream.aclose()              # 主动关闭底层 track
                     # 结束后释放 VideoWriter
+                    logger.info("[Bot] 正在关闭 VideoWriter", writer)
                     if writer:
                         writer.release()
                     logger.info(f"[Bot] 录制结束：{filename}")
@@ -172,7 +176,7 @@ async def start_bot(request: BotRequest, user_id: int = Depends(get_current_user
     以当前 user_id 做鉴权，收到房间名后：如果 Bot 尚未连接，则在后台启动 run_bot() 去加入房间并监听；
     如果已经连接，直接返回 "already connected"。
     """
-    global room
+    global room, bot_task
 
     # 3.1 检查是否已经存在有效连接
     if room is not None and room.connection_state == livekit_rtc.ConnectionState.CONN_CONNECTED:
@@ -184,7 +188,7 @@ async def start_bot(request: BotRequest, user_id: int = Depends(get_current_user
     room_name = request.meetingId
 
     # 在当前运行 loop 中创建后台任务
-    asyncio.get_running_loop().create_task(run_bot(room_name, bot_identity))
+    bot_task = asyncio.get_running_loop().create_task(run_bot(room_name, bot_identity))
 
     return {"status": "connecting", "room": room_name, "identity": bot_identity}
 
@@ -197,7 +201,7 @@ async def stop_bot(user_id: int = Depends(get_current_user)):
     """
     如果 room 存在且已连接，就断开并清空 room 引用；否则返回 "not connected"。
     """
-    global room, recorders
+    global room, recorders, bot_task
 
     if room is not None and room.connection_state == livekit_rtc.ConnectionState.CONN_CONNECTED:
        # ① 取消所有录像任务
@@ -207,6 +211,7 @@ async def stop_bot(user_id: int = Depends(get_current_user)):
         # 等所有任务跑到 finally: writer.release()
         await asyncio.gather(*recorders.values(), return_exceptions=True)
         recorders.clear()
+        bot_task.cancel()
 
         # ② 正常断房间
         await room.disconnect()
