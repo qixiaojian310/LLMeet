@@ -128,7 +128,7 @@ async def run_bot(room_name: str, bot_identity: str):
                 except Exception as exc:
                     logger.error(f"[Bot] 录制过程中发生错误：{exc}")
                 finally:
-                    await video_stream.stop()              # 主动关闭底层 track
+                    await video_stream.aclose()              # 主动关闭底层 track
                     # 结束后释放 VideoWriter
                     if writer:
                         writer.release()
