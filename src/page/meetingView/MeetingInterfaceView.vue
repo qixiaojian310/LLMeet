@@ -63,7 +63,7 @@
           </div>
         </div>
       </div>
-<!-- 
+      <!-- 
       <div class="controller">
         <Fieldset legend="LiveKit Room">
           <p>远端视频将自动显示，点击下方按钮可聚焦某一用户视频。</p>
@@ -118,6 +118,8 @@ import { fas } from "@fortawesome/free-solid-svg-icons";
 import { useMeetingStore } from "@/stores/meetingStore";
 import { router } from "@/router";
 import { computed } from "vue";
+import { deleteMeeting, stopBot } from "@/request/meeting";
+import { message, notification } from "ant-design-vue";
 
 const mainVideoRef = ref<HTMLDivElement | null>(null);
 const controllerState = reactive({ video: true, audio: true });
@@ -304,11 +306,21 @@ onMounted(async () => {
     await room.localParticipant.enableCameraAndMicrophone();
   } catch (err) {
     console.error("LiveKit connect failed:", err);
+    //撤回会议数据库的添加
+    const res = await deleteMeeting(meetingStore.meetingId);
+    message.error("Meeting connection failed");
+    if (res.success) {
+      notification.success({
+        message: "Meeting deleted successfully",
+        description: "You can now create a new meeting",
+      });
+    }
   }
 });
 
-onBeforeUnmount(() => {
+onBeforeUnmount(async () => {
   room.disconnect();
+  await stopBot()
 });
 
 const toggleVideo = () => {
@@ -470,7 +482,7 @@ const leaveMeeting = () => {
       flex-direction: column;
       align-items: center;
     }
-    .title{
+    .title {
       margin: 0;
     }
   }

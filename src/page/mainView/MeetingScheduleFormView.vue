@@ -139,7 +139,7 @@ import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { fas } from "@fortawesome/free-solid-svg-icons";
 import { router } from "@/router";
 import { notification } from "ant-design-vue";
-import { createMeeting, deleteMeeting, getMeetingToken, MeetingInfo } from "@/request/meeting";
+import { createMeeting, deleteMeeting, getMeetingToken, MeetingInfo, startBot } from "@/request/meeting";
 import { useUserStore } from "@/stores/userStore";
 import { useMeetingStore } from "@/stores/meetingStore";
 
@@ -194,15 +194,14 @@ const onFormSubmit = async ({ valid, values }: FormSubmitEvent) => {
         values.meetingStartTime.getTime() + values.meetingDuration * 60 * 1000
       ).toISOString(),
     };
-    console.log(sendRequest);
-
-    const res = await createMeeting(sendRequest);
-    console.log(res);
-    
+    const res = await createMeeting(sendRequest);    
     if (typeof res !== "number") {
       //获取meeting的token->livekit server sdk
       const meetingId = res.meetingId;
       const tokenRes = await getMeetingToken(meetingId, userStore.username);
+      // 加入python bot
+      const startBotRes = await startBot( meetingId);
+      console.log(startBotRes);
       if (typeof tokenRes !== "number") {
         notification.success({
           message: "Meeting created successfully",
