@@ -86,3 +86,43 @@ export const getMeetingToken = async (meetingId: string, username: string) => {
     return res;
   }
 };
+
+export const startBot = async (meetingId: string) => {
+  console.log("startBot", meetingId);
+  
+  const res = await livekitRequestWrapper(
+    "/meeting/start_bot",
+    {
+      meetingId: meetingId,
+    },
+    {
+      method: "POST",
+    },
+    true
+  );
+  if (typeof res !== "number") {
+    const body = await res.json();
+    console.log("res", body);
+    return body;
+  } else {
+    return res;
+  }
+};
+
+export const stopBot = async () => {
+  const res = await livekitRequestWrapper(
+    "/meeting/stop_bot",
+    {},
+    {
+      method: "POST",
+    },
+    true
+  );
+  if (typeof res !== "number") {
+    const body = await res.json();
+    console.log("res", body);
+    return body;
+  } else {
+    return res;
+  }
+};
