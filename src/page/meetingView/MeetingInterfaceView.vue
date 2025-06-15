@@ -274,6 +274,7 @@ onMounted(async () => {
       }
     })
     .on(RoomEvent.LocalTrackPublished, (_, publication) => {
+      console.log('published kind=', publication.kind );
       const videoPub = publication
         .getTrackPublications()
         .find((pub) => pub.kind === Track.Kind.Video);

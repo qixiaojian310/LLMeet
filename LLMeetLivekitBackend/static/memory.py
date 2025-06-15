@@ -1,29 +1,35 @@
+# meeting_minute_dao.py
+
 from .database_connector import get_connection, logger
 
+def insert_meeting_minute(
+    meeting_id: str,
+    minute_record_path: str,
+    content: str = ""
+) -> int:
+    """
+    向 meeting_minutes 表插入一条新记录。
 
-def get_all_unlearned_words(username: str, wordbook_id: int):
-    unlearnd_words = []
+    :param meeting_id:   会议 ID（room name）
+    :param minute_record_path: 合并后生成的文件路径
+    :param content:      会议纪要内容，默认为空
+    :return:              新插入记录的 minutes_id，如果失败则返回 0
+    """
+    new_id = 0
     try:
         with get_connection() as conn:
             with conn.cursor(dictionary=True) as cursor:
                 cursor.execute(
-                    "SELECT user_id FROM users WHERE username = %s", (username,)
-                )
-                user_id = cursor.fetchone()["user_id"]
-                cursor.execute(
                     """
-                    SELECT word from words where word_id in
-                    (SELECT wc.word_id
-                    FROM wordbook_contents wc
-                    LEFT JOIN user_words uw
-                    ON wc.word_id = uw.word_id AND uw.user_id = %s
-                    WHERE wc.wordbook_id = %s
-                    AND uw.word_id IS NULL);
+                    INSERT INTO meeting_minutes
+                      (meeting_id, content, created_at, minute_record_path)
+                    VALUES (%s, %s, NOW(), %s)
                     """,
-                    (user_id, wordbook_id),
+                    (meeting_id, content, minute_record_path),
                 )
-                unlearnd_words: list = cursor.fetchall()
-                return [unlearnd_word["word"] for unlearnd_word in unlearnd_words]
+                conn.commit()
+                new_id = cursor.lastrowid
+                logger.info(f"[DB] 插入 meeting_minutes 成功，minutes_id={new_id}")
     except Exception as e:
-        logger.debug(f"查询失败: {e}")
-        return unlearnd_words
+        logger.error(f"[DB] 插入 meeting_minutes 失败: {e}")
+    return new_id
