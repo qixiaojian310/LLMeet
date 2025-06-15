@@ -48,7 +48,10 @@ public class MeetingServiceImpl implements MeetingService {
         String meetingId = IdGeneratorUtil.generateCustomId();
         Meeting meeting = new Meeting(meetingId, meetingCreateDto.getTitle(), meetingCreateDto.getDescription(),
                 creatorId, createTime,status, meetingCreateDto.getStartTime(), meetingCreateDto.getEndTime());
-        if(meetingMapper.addMeeting(meeting) == 0)
+        if(meetingMapper.addMeeting(meeting)==0)
+            return null;
+
+        if(meetingMapper.addUserToMeeting(creatorId, meetingId, createTime)==0)
             return null;
 
         MeetingCreateResponse response = new MeetingCreateResponse();
@@ -61,6 +64,16 @@ public class MeetingServiceImpl implements MeetingService {
     public ResponseEntity<MeetingDeleteResponse> deleteMeeting(MeetingDeleteDto meetingDeleteDto){
         MeetingDeleteResponse response = new MeetingDeleteResponse();
         response.setSuccess(meetingMapper.deleteMeeting(meetingDeleteDto.getMeetingId())==0);
+        return ResponseEntity.ok(response);
+    }
+
+    @Override
+    public ResponseEntity<MeetingListGetResponse> getMeetingsByUserId(){
+        MeetingListGetResponse response = new MeetingListGetResponse();
+        JwtUserContextUtil.UserHolder userHolder = JwtUserContextUtil.getCurrentUser();
+        Integer userId = userHolder.getUserId();
+        response.setMeetings(meetingMapper.findMeetingsByUserId(userId));
+        response.setSuccess(true);
         return ResponseEntity.ok(response);
     }
 }

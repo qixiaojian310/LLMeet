@@ -5,9 +5,11 @@ import shutil
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import Optional, Dict, List
 
+from static.memory import fetch_meeting_minutes, insert_meeting_minute
 from utils.jwt_utils import get_current_user  # 你的 JWT 验证依赖
 from livekit import api as livekit_api, rtc as livekit_rtc
 
@@ -31,11 +33,19 @@ class MeetingRequest(BaseModel):
 class BotRequest(BaseModel):
     meetingId: str
 
+class VideoPathRequest(BaseModel):
+    path: str
+
+class VideoPathsRequest(BaseModel):
+    meetingId: str
+
 # 录制会话管理器
 class RecordingSession:
-    def __init__(self, participant_identity: str, session_id: str):
+    def __init__(self, participant_identity: str, session_id: str, meeting_id: str, username: str):
         self.participant_identity = participant_identity
         self.session_id = session_id
+        self.meeting_id = meeting_id
+        self.username = username
         self.start_time = time.time()
         self.video_file = None
         self.audio_file = None
@@ -57,7 +67,7 @@ class RecordingSession:
         self.video_file = os.path.join(self.temp_dir, f"video_{participant_identity}_{timestamp}.avi")
         self.audio_file = os.path.join(self.temp_dir, f"audio_{participant_identity}_{timestamp}.wav")
         self.final_file = f"recordings/final_{participant_identity}_{timestamp}.mp4"
-        
+        self.final_files = []
         # 确保输出目录存在
         os.makedirs("recordings", exist_ok=True)
         
@@ -89,22 +99,13 @@ class RecordingSession:
         try:
             await self._merge_audio_video()
             logger.info(f"[Recording] 录制完成并保存到: {self.final_file}")
+            self.final_files.append({
+                'meeting_id': self.meeting_id,
+                'username': self.username,
+                'path': self.final_file
+            })
         except Exception as e:
             logger.error(f"[Recording] 合并音视频失败: {e}")
-        finally:
-            
-    # 插入数据库
-            from ..static.memory import insert_meeting_minute
-            inserted_id = insert_meeting_minute(
-                meeting_id=self.meeting_id,
-                minute_record_path=self.final_file,
-                content=""   # 如果后续要填 content，可以再改
-            )
-            if inserted_id:
-                logger.info(f"[Recording] 数据库记录插入成功，minutes_id={inserted_id}")
-            else:
-                logger.warning(f"[Recording] 数据库记录插入失败：meeting_id={self.meeting_id}")
-        #     self.cleanup()
     
 
     async def _merge_audio_video(self):
@@ -185,7 +186,7 @@ bot_task: Optional[asyncio.Task] = None
 # -----------------------------
 # 2. Bot 主逻辑：run_bot()
 # -----------------------------
-async def run_bot(room_name: str, bot_identity: str):
+async def run_bot(room_name: str, bot_identity: str, username: str):
     """
     优化版本的 Bot，支持音视频同步录制
     """
@@ -229,7 +230,7 @@ async def run_bot(room_name: str, bot_identity: str):
         session_id = f"{participant.identity}_{participant.sid}"
         if session_id in recording_sessions:
             asyncio.create_task(recording_sessions[session_id].finalize_recording())
-            del recording_sessions[session_id]
+            # del recording_sessions[session_id]
 
     # 2.5 轨道订阅事件
     @room.on("track_subscribed")
@@ -242,7 +243,7 @@ async def run_bot(room_name: str, bot_identity: str):
         
         # 获取或创建录制会话
         if session_id not in recording_sessions:
-            recording_sessions[session_id] = RecordingSession(participant.identity, session_id)
+            recording_sessions[session_id] = RecordingSession(participant.identity, session_id, room_name, username)
         
         session = recording_sessions[session_id]
         session.is_recording = True
@@ -283,16 +284,6 @@ async def run_bot(room_name: str, bot_identity: str):
             await asyncio.sleep(10)
     except asyncio.CancelledError:
         logger.info("[Bot] 收到取消信号，开始清理...")
-        
-        # 结束所有录制会话
-        tasks = []
-        for session in recording_sessions.values():
-            tasks.append(session.finalize_recording())
-        
-        if tasks:
-            await asyncio.gather(*tasks, return_exceptions=True)
-        
-        recording_sessions.clear()
         await room.disconnect()
         return
 
@@ -424,7 +415,7 @@ async def start_bot(request: BotRequest, user_id: int = Depends(get_current_user
     bot_identity = "recording-bot"
     room_name = request.meetingId
 
-    bot_task = asyncio.create_task(run_bot(room_name, bot_identity))
+    bot_task = asyncio.create_task(run_bot(room_name, bot_identity, username=user_id))
 
     return {"status": "connecting", "room": room_name, "identity": bot_identity}
 
@@ -432,7 +423,8 @@ async def start_bot(request: BotRequest, user_id: int = Depends(get_current_user
 async def stop_bot(user_id: int = Depends(get_current_user)):
     """停止录制 Bot"""
     global room, recording_sessions, bot_task
-
+    success_count = 0
+    failure_count = 0
     if room is not None and room.connection_state == livekit_rtc.ConnectionState.CONN_CONNECTED:
         if bot_task:
             bot_task.cancel()
@@ -447,11 +439,33 @@ async def stop_bot(user_id: int = Depends(get_current_user)):
             logger.info(f"[Bot] 正在完成 {len(recording_sessions)} 个录制会话...")
             tasks = [session.finalize_recording() for session in recording_sessions.values()]
             await asyncio.gather(*tasks, return_exceptions=True)
+            # 新增：处理所有录制文件的数据库操作
+            
+            for session in recording_sessions.values():
+                for recording in session.final_files:
+                    success = insert_meeting_minute(
+                        meeting_id=recording['meeting_id'],
+                        username=recording['username'],
+                        minute_record_path=recording['path']
+                    )
+                    if success:
+                        success_count += 1
+                        logger.info(f"[DB] 成功保存录制记录: {recording['path']}")
+                    else:
+                        failure_count += 1
+                        logger.warning(f"[DB] 保存录制记录失败: {recording['path']}")
+            
+            logger.info(f"[DB] 数据库操作完成: 成功 {success_count} 条，失败 {failure_count} 条")
+            
             recording_sessions.clear()
         
         await room.disconnect()
         room = None
-        return {"status": "disconnected"}
+        return {
+            "status": "disconnected",
+            "recordings_saved": success_count,
+            "recordings_failed": failure_count
+        }
 
     return {"status": "not connected"}
 
@@ -510,3 +524,44 @@ async def get_status(user_id: int = Depends(get_current_user)):
         })
     
     return status
+
+@router.post("/video")
+async def get_video(request: VideoPathRequest, user_id: int = Depends(get_current_user)):
+    """
+    根据前端给出的文件系统路径，返回一个 MP4 视频文件。
+    暂不做分块/流式，直接一次性返回整个文件。
+    """
+    file_path = Path(request.path)
+    if not file_path.exists() or not file_path.is_file():
+        raise HTTPException(status_code=404, detail="Video not found")
+
+    # 注意：这里 media_type 写死为 video/mp4
+    return FileResponse(
+        path=file_path,
+        media_type="video/mp4",
+        filename=file_path.name
+    )
+
+
+@router.post("/recordingPath", response_model=List[Dict[str, str]])
+async def get_recordings_by_meeting(
+    request: VideoPathsRequest,
+    user_id: int = Depends(get_current_user)
+):
+    """
+    根据 meetingId 返回所有录制文件的路径和对应的 userId。
+    返回结构：[{ "path": "...", "userId": "..." }, …]
+    """
+    try:
+        # 假设 fetch_meeting_minutes 返回的列表，每项是 dict：
+        # { "meeting_id": str, "username": str, "minutes_path": str }
+        records = fetch_meeting_minutes(request.meetingId)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"查询失败：{e}")
+
+    # 转成前端需要的格式
+    result = [
+        {"path": rec["minutes_path"], "userId": rec["username"]}
+        for rec in records
+    ]
+    return result

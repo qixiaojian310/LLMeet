@@ -13,7 +13,11 @@ import {devtools} from '@vue/devtools'
 if (process.env.NODE_ENV === "development") {
   devtools.connect("http://localhost",1420);
 }
+import Tooltip from 'primevue/tooltip';
+
 const app = createApp(App);
+app.directive('tooltip', Tooltip);
+
 const pinia = createPinia();
 
 const Noir = definePreset(Aura, {

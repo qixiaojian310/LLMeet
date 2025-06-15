@@ -23,11 +23,12 @@ export const requestWrapper = async (
     signal?: AbortSignal
   },
   useAuth = true,
+  contentType: string = 'application/json',
 ): Promise<number | Response> => {
   const { method, signal } = options ?? {};
   
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    'Content-Type': contentType,
   };
 
   if (useAuth) {

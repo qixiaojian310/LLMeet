@@ -126,3 +126,61 @@ export const stopBot = async () => {
     return res;
   }
 };
+
+export const getAllMeetingListByUserId = async () => {
+  const res = await requestWrapper(
+    "/meeting/getAll",
+    undefined,
+    {
+      method: "GET",
+    },
+    true
+  );
+  if (typeof res !== "number") {
+    const body = await res.json();
+    console.log("res", body);
+    return body;
+  } else {
+    return res;
+  }
+};
+
+export const getVideoBlob = async (path: string) => {
+  const res = await livekitRequestWrapper(
+    `/meeting/video`,
+    {
+      path
+    },
+    {
+      method: "POST",
+    },
+    true,
+  );
+  if (typeof res !== "number") {
+    const body = await res.blob();
+    console.log("res", body);
+    return body;
+  } else {
+    return res;
+  }
+};
+
+export const getVideoPaths = async (meetingId: string) => {
+  const res = await livekitRequestWrapper(
+    `/meeting/recordingPath`,
+    {
+      meetingId
+    },
+    {
+      method: "POST",
+    },
+    true,
+  );
+  if (typeof res !== "number") {
+    const body = await res.json();
+    console.log("res", body);
+    return body;
+  } else {
+    return res;
+  }
+}

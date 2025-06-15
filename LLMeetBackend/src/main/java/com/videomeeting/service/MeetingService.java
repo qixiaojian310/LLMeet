@@ -10,4 +10,5 @@ public interface MeetingService {
     ResponseEntity<MeetingGetResponse> getMeetingById(MeetingGetDto meetingGetDto);
     ResponseEntity<MeetingCreateResponse> addMeeting(MeetingCreateDto meetingCreateDto);
     ResponseEntity<MeetingDeleteResponse> deleteMeeting(MeetingDeleteDto meetingDeleteDto);
+    ResponseEntity<MeetingListGetResponse> getMeetingsByUserId();
 }

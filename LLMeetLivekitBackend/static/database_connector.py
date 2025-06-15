@@ -27,7 +27,7 @@ connection_pool = None
 def init_connection_pool():
     global connection_pool
     connection_pool = pooling.MySQLConnectionPool(
-        pool_name="voco_pool", pool_size=5, **dbconfig
+        pool_name="llmeet_pool", pool_size=5, **dbconfig
     )
     logger.debug(f"连接池初始化完成，大小: {connection_pool.pool_size}")
 

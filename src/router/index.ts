@@ -46,7 +46,7 @@ const routes:RouteRecordRaw[] = [
         }
       },
       {
-        path: "conference-record/:id",
+        path: "conference-record/:meetingId",
         name: "ConferenceRecord",
         component: () =>
           import("@/page/mainView/ConferenceRecordConvertView.vue"),

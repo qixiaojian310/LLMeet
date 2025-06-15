@@ -108,7 +108,6 @@ import {
   ref,
   reactive,
   onMounted,
-  onBeforeUnmount,
   watch,
   ComponentPublicInstance,
 } from "vue";
@@ -319,11 +318,6 @@ onMounted(async () => {
   }
 });
 
-onBeforeUnmount(async () => {
-  room.disconnect();
-  await stopBot()
-});
-
 const toggleVideo = () => {
   controllerState.video = !controllerState.video;
   room.localParticipant.getTrackPublications().forEach((pub) => {
@@ -342,9 +336,13 @@ const toggleAudio = () => {
   });
 };
 
-const leaveMeeting = () => {
+const leaveMeeting = async () => {
   room.disconnect();
   meetingStore.clearMeetingInfo();
+  const res = await stopBot()
+  console.log(res);
+  
+  message.success('Meeting left successfully')
   router.push({ name: "HomeView" });
 };
 </script>

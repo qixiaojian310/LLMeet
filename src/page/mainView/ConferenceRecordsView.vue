@@ -1,29 +1,41 @@
 <template>
   <div class="conference-records">
-    <Card v-for="conference in conferences" class="conference-record" :key="conference.name">
+    <Card v-for="conference in conferences" class="conference-record" :key="conference.meetingId">
       <template #header>
         <div class="title">
           <FontAwesomeIcon :icon="fas.faVideo" />
           <div>Meeting Record</div>
+          <Tag :value="conference.status" :severity="getStatusSeverity(conference.status)" />
         </div>
       </template>
       <template #content>
         <div class="conference-content">
           <div class="text">
-            <p>{{ conference.name }}</p>
-            <p>{{ conference.date }} {{ conference.time }}</p>
+            <h3>{{ conference.title }}</h3>
+            <p class="description">{{ conference.description }}</p>
+            <div class="time-info">
+              <div class="time-item">
+                <FontAwesomeIcon :icon="fas.faClock" />
+                <span>{{ formatDateTime(conference.startTime) }}</span>
+              </div>
+              <div class="time-item">
+                <FontAwesomeIcon :icon="fas.faHourglassEnd" />
+                <span>{{ formatDuration(conference.startTime, conference.endTime) }}</span>
+              </div>
+            </div>
           </div>
-
         </div>
       </template>
       <template #footer>
         <div class="conference-footer">
           <AvatarGroup>
-            <Avatar v-for="participant in conference.participants" :key="participant" shape="circle"
-              :label="participant.toString()"></Avatar>
+            <Avatar v-for="participant in conference.participants || []" 
+                   :key="participant" 
+                   shape="circle"
+                   :label="participant.toString()" />
           </AvatarGroup>
-          <Button severity="info" class="toolbar-button" @click="redirect(conference.records)">
-            <FontAwesomeIcon :icon="fas.faVideo" />
+          <Button severity="info" class="toolbar-button" @click="redirect(conference.meetingId)">
+            <FontAwesomeIcon :icon="fas.faPlay" />
             Play
           </Button>
         </div>
@@ -35,37 +47,67 @@
 <script setup lang="ts">
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { fas } from '@fortawesome/free-solid-svg-icons';
-import { Card, Avatar, AvatarGroup, Button } from 'primevue';
+import { Card, Avatar, AvatarGroup, Button, Tag } from 'primevue';
 import { ref } from 'vue';
 import { router } from '@/router';
+import { onMounted } from 'vue';
+import { getAllMeetingListByUserId } from '@/request/meeting';
 
-const conferences = ref([
-  {
-    name: 'Conference 1',
-    date: '2023-09-10',
-    time: '10:00',
-    participants: [11, 22, 33],
-    records: '11'
-  },
-  {
-    name: 'Conference 2',
-    date: '2024-09-10',
-    time: '11:00',
-    participants: [11, 99, 33],
-    records: '13'
-  },
-  {
-    name: 'COMP7506 meeting',
-    date: '2023-09-10',
-    time: '13:00',
-    participants: [44, 33, 77],
-    records: '12'
-  },
-])
-const redirect = (id: string) => {
-  router.push({ path: `/home/conference-record/${id}` });
+interface Conference {
+  meetingId: string;
+  title: string;
+  description: string;
+  startTime: string;
+  endTime: string;
+  endedAt: string;
+  createdAt: string;
+  status: string;
+  participants?: number[];
 }
 
+const conferences = ref<Conference[]>([]);
+
+const formatDateTime = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).replace(/\//g, '-');
+};
+
+const formatDuration = (start: string, end: string) => {
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+  const duration = (endDate.getTime() - startDate.getTime()) / (1000 * 60);
+  return `${Math.round(duration)} min`;
+};
+
+const getStatusSeverity = (status: string) => {
+  switch (status.toLowerCase()) {
+    case 'ready': return 'success';
+    case 'ended': return 'info';
+    case 'processing': return 'warning';
+    default: return 'secondary';
+  }
+};
+
+const redirect = (meetingId: string) => {
+  router.push({ name: 'ConferenceRecord', params: { meetingId } });
+};
+
+onMounted(async () => {
+  const res = await getAllMeetingListByUserId();
+  if (typeof res !== 'number' && res.meetings) {
+    conferences.value = res.meetings.map((meeting: any) => ({
+      ...meeting,
+      // 如果API没有返回participants，可以设置默认值或留空
+      participants: meeting.participants || [1, 2, 3] // 示例数据，实际应从API获取
+    }));
+  }
+});
 </script>
 
 <style scoped lang="scss">
@@ -74,42 +116,79 @@ const redirect = (id: string) => {
   width: 100%;
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 20px;
   overflow: auto;
+  padding: 10px;
 
   .conference-record {
-    width: 300px;
-    height: 200px;
-    background: #151e34;
-    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
-    border-radius: 10px;
-    padding: 20px 20px 0 20px;
-    margin: 10px;
+    width: 320px;
+    height: fit-content;
+    background: #00000011;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    padding: 16px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    transition: transform 0.2s, box-shadow 0.2s;
 
-    .p-card-body{
-      padding: 0 !important;
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
     }
 
-    .title{
-      display: flex;  
-      justify-content: space-between;
-      font-weight: 900;
-    }
-    .conference-content {
-      display: flex;
-      justify-content: space-between;
-      p {
-        text-align: start;        
-        margin: 0;
-      }
-    }
-    .conference-footer{
+    .title {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      font-weight: 600;
+      margin-bottom: 12px;
+      
+      > div {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+    }
+
+    .conference-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      
+      h3 {
+        margin: 0 0 8px 0;
+        font-size: 1.1rem;
+        color: var(--text-color);
+      }
+
+      .description {
+        color: var(--text-secondary-color);
+        margin-bottom: 12px;
+        font-size: 0.9rem;
+      }
+
+      .time-info {
+        margin-top: auto;
+        
+        .time-item {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          margin-bottom: 6px;
+          font-size: 0.85rem;
+          color: var(--text-secondary-color);
+        }
+      }
+    }
+
+    .conference-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px solid var(--surface-border);
     }
   }
 }
