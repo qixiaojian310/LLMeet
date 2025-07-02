@@ -26,5 +26,6 @@ dist-ssr
 *.sw?
 **/database.yml
 **/recordings
+**/temps
 
 **/__pycache__

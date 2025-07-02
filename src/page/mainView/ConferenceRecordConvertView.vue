@@ -151,7 +151,7 @@ onBeforeUnmount(() => {
           color: #fff;
         }
 
-        video {
+        .video {
           width: 100%;
           background: #000;
             /* 让原生控件一定显示 */

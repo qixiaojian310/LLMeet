@@ -138,7 +138,7 @@ import { reactive } from "vue";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { fas } from "@fortawesome/free-solid-svg-icons";
 import { router } from "@/router";
-import { notification } from "ant-design-vue";
+import { message } from "ant-design-vue";
 import { createMeeting, deleteMeeting, getMeetingToken, MeetingInfo, startBot } from "@/request/meeting";
 import { useUserStore } from "@/stores/userStore";
 import { useMeetingStore } from "@/stores/meetingStore";
@@ -203,10 +203,7 @@ const onFormSubmit = async ({ valid, values }: FormSubmitEvent) => {
       const startBotRes = await startBot( meetingId);
       console.log(startBotRes);
       if (typeof tokenRes !== "number") {
-        notification.success({
-          message: "Meeting created successfully",
-          description: "You can now enter the meeting",
-        });
+        message.success("Meeting created successfully");
         meetingStore.setMeetingInfo({
           meetingId: meetingId,
           meetingToken: tokenRes.token,
@@ -218,24 +215,15 @@ const onFormSubmit = async ({ valid, values }: FormSubmitEvent) => {
         })
         router.push({ name: "MeetingView" });
       } else {
-        notification.error({
-          message: "Meeting token generation failed",
-          description: "Please try again",
-        });
+        message.error("Meeting token generation failed");
         //撤回会议数据库的添加
         const res = await deleteMeeting(meetingId);
         if (res.success){
-          notification.success({
-            message: "Meeting deleted successfully",
-            description: "You can now create a new meeting", 
-          })
+          message.success("Meeting deleted successfully")
         }
       }
     } else {
-      notification.error({
-        message: "Meeting creation failed",
-        description: "Please try again",
-      });
+      message.error("Meeting creation failed");
     }
   }
 };

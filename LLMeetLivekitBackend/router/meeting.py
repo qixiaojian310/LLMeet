@@ -20,6 +20,7 @@ from loguru import logger
 import wave
 import threading
 import time
+import shlex
 
 # -----------------------------
 # 1. 定义 Router 和 数据模型
@@ -51,9 +52,11 @@ class RecordingSession:
         self.audio_file = None
         self.video_writer = None
         self.audio_writer = None
-        base_dir = os.path.join(os.getcwd(), "recordings", session_id)
-        os.makedirs(base_dir, exist_ok=True)
-        self.temp_dir = base_dir
+        self.base_dir = f"recordings/{meeting_id}"
+        os.makedirs(self.base_dir, exist_ok=True)
+        self.temp_dir = f"temps/{meeting_id}"
+        os.makedirs(self.temp_dir, exist_ok=True)
+        
         self.is_recording = False
         
         # 同步标记
@@ -66,7 +69,7 @@ class RecordingSession:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         self.video_file = os.path.join(self.temp_dir, f"video_{participant_identity}_{timestamp}.avi")
         self.audio_file = os.path.join(self.temp_dir, f"audio_{participant_identity}_{timestamp}.wav")
-        self.final_file = f"recordings/final_{participant_identity}_{timestamp}.mp4"
+        self.final_file = os.path.join(self.base_dir, f"final_{participant_identity}_{timestamp}.mp4")
         self.final_files = []
         # 确保输出目录存在
         os.makedirs("recordings", exist_ok=True)
@@ -106,24 +109,50 @@ class RecordingSession:
             })
         except Exception as e:
             logger.error(f"[Recording] 合并音视频失败: {e}")
-    
+
 
     async def _merge_audio_video(self):
         """使用 FFmpeg 合并音视频（同步 subprocess.run + run_in_executor）"""
         video_exists = os.path.exists(self.video_file) and os.path.getsize(self.video_file) > 0
         audio_exists = os.path.exists(self.audio_file) and os.path.getsize(self.audio_file) > 0
+        def probe_duration(path, stream_type):
+            # stream_type: "v" 或 "a"
+            cmd = [
+                "ffprobe", "-v", "error",
+                "-select_streams", f"{stream_type}:0",
+                "-show_entries", "stream=duration",
+                "-of", "default=noprint_wrappers=1:nokey=1",
+                path
+            ]
+            p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            return float(p.stdout.strip() or 0)
+        video_dur = probe_duration(self.video_file, "v")
+        audio_dur = probe_duration(self.audio_file, "a")
+        atempo_filter = None
+        if video_dur > 0 and audio_dur > video_dur:
+            speed = audio_dur / video_dur
+            # 构造链式 atempo，单个 atempo 篇幅 0.5–2.0
+            factors = []
+            while speed > 2.0:
+                factors.append(2.0)
+                speed /= 2.0
+            factors.append(speed)
+            atempo_filter = ",".join(f"atempo={f:.6f}" for f in factors)
 
         if video_exists and audio_exists:
             cmd = [
-                'ffmpeg', '-y', '-report', '-loglevel', 'verbose',
-                '-i', self.video_file,
-                '-i', self.audio_file,
-                '-c:v', 'libx264',
-                '-c:a', 'aac',
-                '-preset', 'medium',
-                '-crf', '23',
-                '-shortest',
-                '-vsync', 'cfr',
+                "ffmpeg", "-y", "-report", "-loglevel", "verbose",
+                "-i", self.video_file,
+                "-i", self.audio_file,
+            ]
+            if atempo_filter:
+                cmd += ["-filter:a", atempo_filter]
+            cmd += [
+                "-c:v", "libx264",
+                "-c:a", "aac",
+                "-preset", "medium",
+                "-crf", "23",
+                "-shortest",                   # 以最短流结束（保险起见）
                 self.final_file
             ]
         elif video_exists:
@@ -161,8 +190,6 @@ class RecordingSession:
 
         # 日志输出
         logger.debug(f"[Recording] FFmpeg 返回码: {result.returncode}")
-        logger.debug(f"[Recording] FFmpeg stdout: {result.stdout!r}")
-        logger.debug(f"[Recording] FFmpeg stderr: {result.stderr!r}")
 
         if result.returncode != 0:
             raise Exception(f"FFmpeg 执行失败 (code={result.returncode})，stderr:\n{result.stderr}")

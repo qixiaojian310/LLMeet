@@ -80,11 +80,11 @@ import { reactive } from "vue";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { fas } from "@fortawesome/free-solid-svg-icons";
 import { router } from "@/router";
-import { notification } from "ant-design-vue";
 import { useUserStore } from "@/stores/userStore";
 import { onMounted } from "vue";
 import { getMeeting, getMeetingToken } from "@/request/meeting";
 import { useMeetingStore } from "@/stores/meetingStore";
+import { message } from "ant-design-vue";
 
 const userStore = useUserStore();
 const meetingStore = useMeetingStore();
@@ -114,10 +114,7 @@ const onFormSubmit = async ({ valid, values }: FormSubmitEvent) => {
   if (valid) {
     const res = await getMeeting(values.meetingNumber);
     if (!res.success) {
-      notification.error({
-        message: "Meeting not found",
-        description: "Please check your meeting number",
-      });
+      message.error("Meeting not found");
       return;
     }
     const tokenRes = await getMeetingToken(
@@ -144,15 +141,9 @@ const onFormSubmit = async ({ valid, values }: FormSubmitEvent) => {
           .replace("T", " "),
       });
       router.push("/meeting");
-      notification.success({
-        message: "Meeting entered successfully",
-        description: "You can now enter the meeting",
-      });
+      message.success("Meeting entered successfully");
     } else {
-      notification.error({
-        message: "Meeting token generation failed",
-        description: "Please try again",
-      });
+      message.error('Meeting token generation failed');
     }
   }
 };

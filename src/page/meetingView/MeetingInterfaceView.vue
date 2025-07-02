@@ -118,7 +118,7 @@ import { useMeetingStore } from "@/stores/meetingStore";
 import { router } from "@/router";
 import { computed } from "vue";
 import { deleteMeeting, stopBot } from "@/request/meeting";
-import { message, notification } from "ant-design-vue";
+import { message } from "ant-design-vue";
 
 const mainVideoRef = ref<HTMLDivElement | null>(null);
 const controllerState = reactive({ video: true, audio: true });
@@ -310,10 +310,7 @@ onMounted(async () => {
     const res = await deleteMeeting(meetingStore.meetingId);
     message.error("Meeting connection failed");
     if (res.success) {
-      notification.success({
-        message: "Meeting deleted successfully",
-        description: "You can now create a new meeting",
-      });
+      message.success("Meeting deleted successfully");
     }
   }
 });
