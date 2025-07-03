@@ -1,5 +1,5 @@
-import { requestWrapper } from './requestWrapper';
 import { userStaticStore } from '@/utils/staticStore';
+import { requestWrapper } from './requestWrapper';
 
 interface BasicUserInfo {
   username: string;

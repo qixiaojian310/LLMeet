@@ -6,7 +6,6 @@ import { message } from 'ant-design-vue';
 let expireCounter = 0;
 const MAX_RETRY_TIME = 0;
 type methodType = 'GET' | 'POST' | 'PUT' | 'DELETE';
-const BASE_URL = 'http://localhost:8080';
 // const BASE_URL = 'http://192.168.1.104:8000';
 
 /**
@@ -23,7 +22,8 @@ export const requestWrapper = async (
     signal?: AbortSignal;
   },
   useAuth = true,
-  contentType: string = 'application/json'
+  contentType: string = 'application/json',
+  baseURL: string = import.meta.env.VITE_MAIN_BACKEND_URL
 ): Promise<number | Response> => {
   const { method, signal } = options ?? {};
 
@@ -46,7 +46,7 @@ export const requestWrapper = async (
   };
 
   try {
-    const response = await fetch(BASE_URL + requestURL, requestOptions);
+    const response = await fetch(baseURL + requestURL, requestOptions);
 
     if (response.ok) {
       return response;

@@ -1,4 +1,3 @@
-import { livekitRequestWrapper } from './livekitRequestWrapper';
 import { requestWrapper } from './requestWrapper';
 
 export interface MeetingInfo {
@@ -67,7 +66,7 @@ export const getMeeting = async (meetingId: string) => {
 };
 
 export const getMeetingToken = async (meetingId: string, username: string) => {
-  const res = await livekitRequestWrapper(
+  const res = await requestWrapper(
     '/meeting/token',
     {
       meetingId: meetingId,
@@ -76,7 +75,9 @@ export const getMeetingToken = async (meetingId: string, username: string) => {
     {
       method: 'POST'
     },
-    true
+    true,
+    undefined,
+    import.meta.env.VITE_RECORD_BASE_URL
   );
   if (typeof res !== 'number') {
     const body = await res.json();
@@ -90,7 +91,7 @@ export const getMeetingToken = async (meetingId: string, username: string) => {
 export const startBot = async (meetingId: string) => {
   console.log('startBot', meetingId);
 
-  const res = await livekitRequestWrapper(
+  const res = await requestWrapper(
     '/meeting/start_bot',
     {
       meetingId: meetingId
@@ -98,7 +99,9 @@ export const startBot = async (meetingId: string) => {
     {
       method: 'POST'
     },
-    true
+    true,
+    undefined,
+    import.meta.env.VITE_RECORD_BASE_URL
   );
   if (typeof res !== 'number') {
     const body = await res.json();
@@ -110,13 +113,15 @@ export const startBot = async (meetingId: string) => {
 };
 
 export const stopBot = async () => {
-  const res = await livekitRequestWrapper(
+  const res = await requestWrapper(
     '/meeting/stop_bot',
     {},
     {
       method: 'POST'
     },
-    true
+    true,
+    undefined,
+    import.meta.env.VITE_RECORD_BASE_URL
   );
   if (typeof res !== 'number') {
     const body = await res.json();
@@ -146,7 +151,7 @@ export const getAllMeetingListByUserId = async () => {
 };
 
 export const getVideoBlob = async (path: string) => {
-  const res = await livekitRequestWrapper(
+  const res = await requestWrapper(
     `/meeting/video`,
     {
       path
@@ -154,7 +159,9 @@ export const getVideoBlob = async (path: string) => {
     {
       method: 'POST'
     },
-    true
+    true,
+    undefined,
+    import.meta.env.VITE_RECORD_BASE_URL
   );
   if (typeof res !== 'number') {
     const body = await res.blob();
@@ -166,7 +173,7 @@ export const getVideoBlob = async (path: string) => {
 };
 
 export const getVideoPaths = async (meetingId: string) => {
-  const res = await livekitRequestWrapper(
+  const res = await requestWrapper(
     `/meeting/recordingPath`,
     {
       meetingId
@@ -174,7 +181,9 @@ export const getVideoPaths = async (meetingId: string) => {
     {
       method: 'POST'
     },
-    true
+    true,
+    undefined,
+    import.meta.env.VITE_RECORD_BASE_URL
   );
   if (typeof res !== 'number') {
     const body = await res.json();
