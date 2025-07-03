@@ -34,6 +34,11 @@
         </button>
       </div>
     </div>
+    <div class="video-control">
+      <button @click="playAll">▶️ Play All</button>
+      <button @click="pauseAll">⏸️ Pause All</button>
+      <input type="range" min="0" max="100" step="0.1" v-model="globalProgress" @input="seekAll" />
+    </div>
     <div class="video-chapter" :class="{ visible: showChapter }">
       <p style="font-size: 20px; color: var(--primary-text-color)">Chapter</p>
       <div class="video-chapter-panel">
@@ -147,15 +152,57 @@ async function loadVideos() {
     console.error('加载视频失败：', err);
   }
 }
+const globalProgress = ref(0); // 0-100%
+
+function getShortestDuration(): number {
+  return players.reduce((min, p) => {
+    const d = p.duration?.() || 0;
+    return d > 0 && d < min ? d : min;
+  }, Infinity);
+}
+
+function playAll() {
+  players.forEach(player => {
+    if (player.readyState() > 0) {
+      player.play();
+    }
+  });
+}
+
+function pauseAll() {
+  players.forEach(player => {
+    player.pause();
+  });
+}
+
+function seekAll() {
+  const shortestDuration = getShortestDuration();
+  const time = (globalProgress.value / 100) * shortestDuration;
+  players.forEach(player => {
+    player.currentTime(time);
+  });
+}
+
+function bindProgressSync() {
+  const shortestPlayer = players.reduce((min, p) => {
+    const d = p.duration?.() || 0;
+    return d > 0 && d <= (min.duration?.() || Infinity) ? p : min;
+  }, players[0]);
+
+  if (shortestPlayer) {
+    shortestPlayer.on('timeupdate', () => {
+      globalProgress.value = (shortestPlayer.currentTime() / shortestPlayer.duration()) * 100;
+    });
+  }
+}
 
 onMounted(async () => {
   await loadVideos();
-  await nextTick(); // 等待 DOM 渲染后再初始化播放器
-
+  await nextTick();
   const videoEls = document.querySelectorAll<HTMLVideoElement>('video.my-video');
   videoEls.forEach((el, index) => {
     const player = videojs(el, {
-      controls: true,
+      controls: false,
       autoplay: false,
       preload: 'auto',
       fluid: true,
@@ -168,6 +215,8 @@ onMounted(async () => {
     });
     players[index] = player;
   });
+
+  bindProgressSync();
 });
 
 onBeforeUnmount(() => {
@@ -180,8 +229,13 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   display: flex;
+  flex-direction: column;
   gap: 10px;
-
+  .video-control {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
   .video-panel {
     width: 100%;
     height: 100%;
