@@ -1,6 +1,6 @@
 <template>
   <div class="toolbar-view">
-    <Button severity="contrast" class="toolbar-button" v-for="button in buttons" :key="button.title" variant="text"
+    <Button severity="contrast" class="toolbar-button" v-for="button in props.buttons" :key="button.title" variant="text"
       @click="redirect(button.path)">
       <FontAwesomeIcon :icon="button.icon"></FontAwesomeIcon>
       <p>{{ button.title }}</p>
@@ -25,18 +25,16 @@ const redirect = (path: string) => {
   router.push({ path:`/home/${path}` });
 }
 
-
-
-
 </script>
 
 <style scoped lang="scss">
 .p-button.toolbar-button {
   width: 100%;
-  padding-left: 20px;
-  padding-right: 20px;
+  padding: 1rem 1rem;
   display: flex;
   justify-content: start;
-  /* color: #fff; */
+  p{
+    margin: 0;
+  }
 }
 </style>

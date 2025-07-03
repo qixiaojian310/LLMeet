@@ -36,7 +36,7 @@
 import { Card } from 'primevue';
 import { ref, onMounted, onUnmounted } from 'vue';
 import { ToolCardItem } from '@/types/mainLayout/toolbar';
-import { fas } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faUser, faVideo } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { router } from '@/router';
 const meetingTime = ref(new Date(new Date().getTime() + 3 * 60 * 60 * 1000).toISOString().replace('T', ' ').substring(0, 19));
@@ -69,20 +69,20 @@ const bgURL = ref(new URL('@/assets/main-bg.jpg', import.meta.url).href);
 const tools = ref<ToolCardItem[]>([
   {
     title: 'New Meeting',
-    icon: fas.faPlus,
+    icon: faPlus,
     photo: new URL('@/assets/card/meeting.jpg', import.meta.url).href,
     description: "Create a new meeting",
     path: 'meeting-schedule-form',
   }, {
     title: 'Join Meeting',
-    icon: fas.faUser,
+    icon: faUser,
     photo: new URL('@/assets/card/join.jpg', import.meta.url).href,
     description: "Join a meeting",
     path: 'meeting-join-form'
   },
   {
     title: 'View Record',
-    icon: fas.faVideo,
+    icon: faVideo,
     photo: new URL('@/assets/card/record.jpg', import.meta.url).href,
     description: "View meeting record",
     path: 'conference-records'

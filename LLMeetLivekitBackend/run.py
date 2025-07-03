@@ -3,6 +3,7 @@ from static.database_connector import init_connection_pool, close_connection_poo
 from router import meeting
 import uvicorn
 from contextlib import asynccontextmanager
+from fastapi.middleware.cors import CORSMiddleware
 
 
 @asynccontextmanager
@@ -19,7 +20,13 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 或者指定域名 ["http://localhost:3000"]
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 # 挂载 auth 路由
 app.include_router(meeting.router)
 

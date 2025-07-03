@@ -1,0 +1,31 @@
+:root {
+  --primary-color: #6a0dad; /* 紫色基调 */
+  --primary-color-light: #8e44ec;
+  --primary-color-lighter: #a678f2;
+  --primary-color-lightest: #c8aef7;
+  
+  --primary-background-color: #f4e2ff; /* 淡紫粉背景 */
+  --secondary-background-color: #fef6ff; /* 更柔的背景 */
+
+  --primary-text-color: #2c003e; /* 深紫文本 */
+
+  --meeting-background-color: #ffffffcc; /* 半透明白 */
+  --meeting-expander-background-color: #ffe5fcdd; /* 轻粉 */
+  --meeting-content-background-color: #ffe8fa; /* 内容浅粉 */
+  --meeting-video-background-color: #e3d3ff; /* 视频背景偏淡紫 */
+  --header-background-color: #f5dbff; /* Header 偏亮紫 */
+  --meeting-info-background-color: #f7e6ff; /* Info背景 */
+  --meeting-control-background-color: #ffffffaa;
+
+  --meeting-text-color: #4a004a; /* 深紫灰文本 */
+
+  --box-shadow-base-color: #d39fff; /* Fancy 的淡紫阴影 */
+
+  --primary-border-color: #d7b3ff; /* 紫粉边框 */
+  --secondary-border-color: #f0dbff; /* 更浅 */
+
+  --record-info-background-color: #ffffffcc;
+  --record-info-border-color: #f0dbff;
+
+  font-size: 12px;
+}

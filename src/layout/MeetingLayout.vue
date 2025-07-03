@@ -10,7 +10,7 @@
 
 <style scoped lang="scss">
 .meeting-panel {
-  background: #253047;
+  background: var(--primary-background-color);
   overflow: hidden;
   flex: 1;
 

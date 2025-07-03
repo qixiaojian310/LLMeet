@@ -35,7 +35,7 @@ const route = useRoute();
   .header-view {
     width: 100%;
     height: 50px;
-    background: #0d1321;
+    background: var(--primary-background-color);
   }
 }
 </style>
@@ -45,9 +45,6 @@ const route = useRoute();
   font-size: 16px;
   line-height: 24px;
   font-weight: 400;
-
-  color: #0f0f0f;
-  background-color: #f6f6f6;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;

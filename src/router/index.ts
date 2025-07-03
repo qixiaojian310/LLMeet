@@ -1,4 +1,4 @@
-import { createWebHistory, createRouter, RouteRecordRaw } from "vue-router";
+import { createRouter, RouteRecordRaw, createWebHashHistory } from "vue-router";
 
 import MainLayout from "@/layout/MainLayout.vue";
 import RegisterLayout from "@/layout/RegisterLayout.vue";
@@ -96,7 +96,7 @@ const routes:RouteRecordRaw[] = [
 ];
 
 export const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(),
   routes,
 });
 

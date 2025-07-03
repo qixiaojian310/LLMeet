@@ -3,7 +3,7 @@
     <Card v-for="conference in conferences" class="conference-record" :key="conference.meetingId">
       <template #header>
         <div class="title">
-          <FontAwesomeIcon :icon="fas.faVideo" />
+          <FontAwesomeIcon :icon="faVideo" />
           <div>Meeting Record</div>
           <Tag :value="conference.status" :severity="getStatusSeverity(conference.status)" />
         </div>
@@ -15,11 +15,11 @@
             <p class="description">{{ conference.description }}</p>
             <div class="time-info">
               <div class="time-item">
-                <FontAwesomeIcon :icon="fas.faClock" />
+                <FontAwesomeIcon :icon="faClock" />
                 <span>{{ formatDateTime(conference.startTime) }}</span>
               </div>
               <div class="time-item">
-                <FontAwesomeIcon :icon="fas.faHourglassEnd" />
+                <FontAwesomeIcon :icon="faHourglassEnd" />
                 <span>{{ formatDuration(conference.startTime, conference.endTime) }}</span>
               </div>
             </div>
@@ -35,7 +35,7 @@
                    :label="participant.toString()" />
           </AvatarGroup>
           <Button severity="info" class="toolbar-button" @click="redirect(conference.meetingId)">
-            <FontAwesomeIcon :icon="fas.faPlay" />
+            <FontAwesomeIcon :icon="faPlay" />
             Play
           </Button>
         </div>
@@ -46,7 +46,7 @@
 
 <script setup lang="ts">
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { fas } from '@fortawesome/free-solid-svg-icons';
+import { faPlay,faVideo,faHourglassEnd, faClock } from '@fortawesome/free-solid-svg-icons';
 import { Card, Avatar, AvatarGroup, Button, Tag } from 'primevue';
 import { ref } from 'vue';
 import { router } from '@/router';
@@ -124,7 +124,7 @@ onMounted(async () => {
     width: 320px;
     height: fit-content;
     background: #00000011;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 10px #0000001a;
     border-radius: 12px;
     padding: 16px;
     display: flex;
@@ -134,7 +134,7 @@ onMounted(async () => {
 
     &:hover {
       transform: translateY(-5px);
-      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 8px 15px #00000026;
     }
 
     .title {

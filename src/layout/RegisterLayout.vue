@@ -15,7 +15,7 @@ const registerBGURL = new URL('@/assets/login-bg.png', import.meta.url).href
 
 <style scoped lang="scss">
 .register-panel {
-  background: #3e4657;
+  background: var(--primary-background-color);
   overflow: hidden;
   flex: 1;
   display: flex;

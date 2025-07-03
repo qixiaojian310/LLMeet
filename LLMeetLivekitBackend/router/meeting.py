@@ -4,8 +4,8 @@ import subprocess
 import shutil
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
 from typing import Optional, Dict, List
 
@@ -552,22 +552,53 @@ async def get_status(user_id: int = Depends(get_current_user)):
     
     return status
 
-@router.post("/video")
-async def get_video(request: VideoPathRequest, user_id: int = Depends(get_current_user)):
+@router.get("/video")
+async def get_video(request: Request, path: str):
     """
     根据前端给出的文件系统路径，返回一个 MP4 视频文件。
-    暂不做分块/流式，直接一次性返回整个文件。
     """
-    file_path = Path(request.path)
+    file_path = Path(path)
     if not file_path.exists() or not file_path.is_file():
-        raise HTTPException(status_code=404, detail="Video not found")
+        raise HTTPException(status_code=404, detail="File not found")
 
-    # 注意：这里 media_type 写死为 video/mp4
-    return FileResponse(
-        path=file_path,
-        media_type="video/mp4",
-        filename=file_path.name
-    )
+    file_size = os.path.getsize(file_path)
+    range_header = request.headers.get("range")
+    if range_header:
+        # Parse Range header
+        range_str = range_header.strip().lower().replace("bytes=", "")
+        start_str, end_str = range_str.split("-")
+        start = int(start_str)
+        end = int(end_str) if end_str else file_size - 1
+        chunk_size = end - start + 1
+
+        def iterfile():
+            with open(file_path, "rb") as f:
+                f.seek(start)
+                yield f.read(chunk_size)
+
+        return StreamingResponse(
+            iterfile(),
+            status_code=206,
+            headers={
+                "Content-Range": f"bytes {start}-{end}/{file_size}",
+                "Accept-Ranges": "bytes",
+                "Content-Length": str(chunk_size),
+            },
+            media_type="video/mp4",
+        )
+    else:
+        def fullfile():
+            with open(file_path, "rb") as f:
+                yield from f
+
+        return StreamingResponse(
+            fullfile(),
+            media_type="video/mp4",
+            headers={
+                "Accept-Ranges": "bytes",
+                "Content-Length": str(file_size),
+            }
+        )
 
 
 @router.post("/recordingPath", response_model=List[Dict[str, str]])

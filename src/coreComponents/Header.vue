@@ -104,15 +104,15 @@
       <Popover ref="op">
         <div class="user-panel">
           <Button variant="text" severity="contrast">
-            <FontAwesomeIcon :icon="fas.faUser" />
+            <FontAwesomeIcon :icon="faUser" />
             <span>User</span>
           </Button>
           <Button variant="text" severity="contrast">
-            <FontAwesomeIcon :icon="fas.faGear" />
+            <FontAwesomeIcon :icon="faGear" />
             <span>Setting</span>
           </Button>
           <Button variant="text" severity="contrast" @click="logout">
-            <FontAwesomeIcon :icon="fas.faRightFromBracket" />
+            <FontAwesomeIcon :icon="faRightFromBracket" />
             <span>Logout</span>
           </Button>
         </div>
@@ -125,7 +125,7 @@
 import { router } from "@/router";
 import { useUserStore } from "@/stores/userStore";
 import { userStaticStore } from "@/utils/staticStore";
-import { fas } from "@fortawesome/free-solid-svg-icons";
+import { faUser,faGear,faRightFromBracket } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { Button, Popover } from "primevue";
 import { message } from 'ant-design-vue';
@@ -153,7 +153,7 @@ const logout = async () => {
   width: 100%;
   height: 100%;
   display: flex;
-  color: #fff;
+  color: var(--primary-text-color);
 
   .splitter-view__left {
     p {

@@ -67,7 +67,7 @@
       </div>
     </div>
     <Button type="submit" severity="secondary">
-      <FontAwesomeIcon :icon="fas.faChampagneGlasses" />
+      <FontAwesomeIcon :icon="faChampagneGlasses" />
       Enter Meeting
     </Button>
   </Form>
@@ -78,7 +78,7 @@ import { Form, FormSubmitEvent } from "@primevue/forms";
 import { Button, IftaLabel, InputText, Message, Checkbox } from "primevue";
 import { reactive } from "vue";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { fas } from "@fortawesome/free-solid-svg-icons";
+import { faChampagneGlasses } from "@fortawesome/free-solid-svg-icons";
 import { router } from "@/router";
 import { useUserStore } from "@/stores/userStore";
 import { onMounted } from "vue";
@@ -168,7 +168,7 @@ onMounted(() => {
   }
 
   .form-check-box {
-    color: #ffffff;
+    color: var(--primary-text-color);
     width: 60%;
     max-width: 800px;
     display: flex;

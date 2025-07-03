@@ -1,24 +1,16 @@
 <template>
   <div class="meeting-view-container">
     <div class="header-panel">
-      <Button
-        severity="secondary"
-        style="position: relative"
-        @click="
-          () => {
-            openMeetingInfo = !openMeetingInfo;
-          }
-        "
-      >
+      <Button severity="secondary" style="position: relative" @click="
+        () => {
+          openMeetingInfo = !openMeetingInfo;
+        }
+      ">
         <img height="35px" :src="iconPath" alt="Avatar" />
         <span>Meeting Info</span>
       </Button>
       <div v-if="openMeetingInfo" class="meeting-info">
-        <div
-          class="meeting-info-item"
-          v-for="item in meetingInfo"
-          :key="item.title"
-        >
+        <div class="meeting-info-item" v-for="item in meetingInfo" :key="item.title">
           <p class="title">{{ item.title }}</p>
           <p class="value">{{ item.value }}</p>
         </div>
@@ -30,34 +22,21 @@
           <!-- 主视频区域 -->
           <div class="main-video">
             <div ref="mainVideoRef" />
-            <Button
-              class="expander"
-              severity="secondary"
-              @click="
-                () => {
-                  openThumbnails = !openThumbnails;
-                }
-              "
-            >
-              <FontAwesomeIcon
-                v-if="openThumbnails"
-                :icon="fas.faChevronRight"
-                size="1x"
-              />
-              <FontAwesomeIcon v-else :icon="fas.faChevronLeft" size="1x" />
+            <Button class="expander" severity="secondary" @click="
+              () => {
+                openThumbnails = !openThumbnails;
+              }
+            ">
+              <FontAwesomeIcon v-if="openThumbnails" :icon="faChevronRight" size="1x" />
+              <FontAwesomeIcon v-else :icon="faChevronLeft" size="1x" />
             </Button>
           </div>
 
           <!-- 缩略图区域 -->
           <div :class="`thumbnails ${openThumbnails ? 'open' : 'closed'}`">
-            <div
-              v-for="item in attachedTracks.filter(
-                (item) => item.participantSid !== focusedParticipantSid
-              )"
-              :key="item.participantSid"
-              class="thumbnail"
-              @click="focusedParticipantSid = item.participantSid"
-            >
+            <div v-for="item in attachedTracks.filter(
+              (item) => item.participantSid !== focusedParticipantSid
+            )" :key="item.participantSid" class="thumbnail" @click="focusedParticipantSid = item.participantSid">
               <div :ref="(el) => mountVideo(el, item.participantSid)" />
             </div>
           </div>
@@ -73,23 +52,16 @@
 
     <div class="controls">
       <Button type="button" severity="secondary" @click="toggleVideo">
-        <FontAwesomeIcon
-          :icon="controllerState.video ? fas.faVideo : fas.faVideoSlash"
-          size="2x"
-        />
+        <FontAwesomeIcon :icon="controllerState.video ? faVideo : faVideoSlash" size="2x" />
         <p class="title">Video</p>
       </Button>
       <Button type="button" severity="secondary" @click="toggleAudio">
-        <FontAwesomeIcon
-          :icon="
-            controllerState.audio ? fas.faMicrophone : fas.faMicrophoneSlash
-          "
-          size="2x"
-        />
+        <FontAwesomeIcon :icon="controllerState.audio ? faMicrophone : faMicrophoneSlash
+          " size="2x" />
         <p class="title">Audio</p>
       </Button>
       <Button type="button" severity="secondary" @click="leaveMeeting">
-        <FontAwesomeIcon :icon="fas.faSignOutAlt" size="2x" />
+        <FontAwesomeIcon :icon="faSignOutAlt" size="2x" />
         <p class="title">Leave</p>
       </Button>
     </div>
@@ -113,7 +85,7 @@ import {
 } from "vue";
 import { Button } from "primevue";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { fas } from "@fortawesome/free-solid-svg-icons";
+import { faSignOutAlt, faMicrophone, faMicrophoneSlash, faVideo, faVideoSlash, faChevronRight, faChevronLeft } from "@fortawesome/free-solid-svg-icons";
 import { useMeetingStore } from "@/stores/meetingStore";
 import { router } from "@/router";
 import { computed } from "vue";
@@ -273,7 +245,7 @@ onMounted(async () => {
       }
     })
     .on(RoomEvent.LocalTrackPublished, (_, publication) => {
-      console.log('published kind=', publication.kind );
+      console.log('published kind=', publication.kind);
       const videoPub = publication
         .getTrackPublications()
         .find((pub) => pub.kind === Track.Kind.Video);
@@ -338,7 +310,7 @@ const leaveMeeting = async () => {
   meetingStore.clearMeetingInfo();
   const res = await stopBot()
   console.log(res);
-  
+
   message.success('Meeting left successfully')
   router.push({ name: "HomeView" });
 };
@@ -354,30 +326,35 @@ const leaveMeeting = async () => {
   .header-panel {
     display: flex;
     height: 40px;
-    background: #27272a;
+    background: var(--header-background-color);
     position: relative;
+
     .meeting-info {
       display: flex;
       flex-direction: column;
       position: absolute;
       width: 400px;
-      background: #323030;
+      background: var(--meeting-info-background-color);
       top: 130%;
       z-index: 9999;
-      box-shadow: 0 0 10px #1a1818;
+      box-shadow: 0 0 10px var(--box-shadow-base-color);
       border-radius: 10px;
       gap: 15px;
       padding: 10px;
+
       .meeting-info-item {
         display: flex;
         justify-content: space-between;
         align-items: center;
+
         .title {
-          color: #ada6a6;
+          color: var(--primary-color);
         }
+
         .value {
-          color: #f3f3eb;
+          color: var(--primary-color-light);
         }
+
         p {
           margin: 0;
         }
@@ -397,27 +374,29 @@ const leaveMeeting = async () => {
       display: flex;
       justify-content: center;
       align-items: center;
-      background: #272626;
+      background: var(--meeting-content-background-color);
 
       .video {
         width: 100%;
         height: 100%;
         display: flex;
         align-items: center;
+
         .main-video {
           flex: 1;
           height: 100%;
-          background: rgb(48, 49, 47);
+          background: var(--meeting-video-background-color);
           display: flex;
           justify-content: center;
           align-items: center;
           position: relative;
+
           .expander {
             position: absolute;
             right: 0;
             top: 50%;
             transform: translate(0, -60%);
-            background: #00000088;
+            background: var(--meeting-expander-background-color);
           }
         }
 
@@ -427,27 +406,30 @@ const leaveMeeting = async () => {
           gap: 10px;
           justify-content: start;
           overflow: auto;
-          background: #00000088;
+          background: var(--meeting-expander-background-color);
           transition: width 0.2s ease;
           flex-direction: column;
           height: 100%;
+
           &.open {
             width: 200px;
           }
+
           &.closed {
             width: 0;
             visibility: hidden;
           }
+
           .thumbnail {
             cursor: pointer;
-            border: 2px solid #ccc;
+            border: 2px solid var(--secondary-border-color);
             padding: 2px;
 
             &:hover {
-              border-color: #fff;
+              border-color: var(--primary-border-color);
             }
 
-            > div {
+            >div {
               width: 100%;
               background: black;
               display: flex;
@@ -471,13 +453,14 @@ const leaveMeeting = async () => {
     justify-content: center;
     gap: 20px;
     height: 80px;
-    background: #272626;
+    background: var(--meeting-control-background-color);
 
     .p-button {
       display: flex;
       flex-direction: column;
       align-items: center;
     }
+
     .title {
       margin: 0;
     }

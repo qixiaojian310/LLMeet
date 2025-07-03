@@ -55,7 +55,7 @@
       </div>
     </div>
     <Button type="submit" severity="secondary">
-      <FontAwesomeIcon :icon="fas.faChampagneGlasses" />
+      <FontAwesomeIcon :icon="faChampagneGlasses" />
       Login
     </Button>
   </Form>
@@ -66,7 +66,7 @@ import { Form, FormSubmitEvent } from "@primevue/forms";
 import { Button, IftaLabel, InputText, Message } from "primevue";
 import { reactive } from "vue";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { fas } from "@fortawesome/free-solid-svg-icons";
+import { faChampagneGlasses } from "@fortawesome/free-solid-svg-icons";
 import { signin } from "@/request/authorization";
 import { router } from "@/router";
 import { message } from 'ant-design-vue';
@@ -123,7 +123,7 @@ const onFormSubmit = async (e: FormSubmitEvent) => {
   justify-content: center;
 
   .title {
-    color: #ffffff;
+    color: var(--primary-text-color);
     font-size: 32px;
     font-weight: bold;
     text-align: center;
@@ -136,7 +136,7 @@ const onFormSubmit = async (e: FormSubmitEvent) => {
   }
 
   .form-check-box {
-    color: #ffffff;
+    color: var(--primary-text-color);
     width: 60%;
     max-width: 800px;
     display: flex;

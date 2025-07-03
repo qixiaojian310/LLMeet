@@ -117,7 +117,7 @@
       </div>
     </div>
     <Button type="submit" severity="secondary">
-      <FontAwesomeIcon :icon="fas.faChampagneGlasses" />
+      <FontAwesomeIcon :icon="faChampagneGlasses" />
       Enter Meeting
     </Button>
   </Form>
@@ -136,7 +136,7 @@ import {
 } from "primevue";
 import { reactive } from "vue";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { fas } from "@fortawesome/free-solid-svg-icons";
+import { faChampagneGlasses } from "@fortawesome/free-solid-svg-icons";
 import { router } from "@/router";
 import { message } from "ant-design-vue";
 import { createMeeting, deleteMeeting, getMeetingToken, MeetingInfo, startBot } from "@/request/meeting";
@@ -244,7 +244,7 @@ const onFormSubmit = async ({ valid, values }: FormSubmitEvent) => {
   }
 
   .form-check-box {
-    color: #ffffff;
+    color: var(--primary-text-color);
     width: 60%;
     max-width: 800px;
     display: flex;
