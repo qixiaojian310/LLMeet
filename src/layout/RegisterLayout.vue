@@ -3,14 +3,18 @@
     <div class="controller-panel">
       <RouterView />
     </div>
-    <div class="register-bg" :style="{background: `url(${registerBGURL}) no-repeat center center`, backgroundSize: 'auto 100%'}">
-     
-    </div>
+    <div
+      class="register-bg"
+      :style="{
+        background: `url(${registerBGURL}) no-repeat center center`,
+        backgroundSize: 'auto 100%'
+      }"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-const registerBGURL = new URL('@/assets/login-bg.png', import.meta.url).href
+const registerBGURL = new URL('@/assets/login-bg.png', import.meta.url).href;
 </script>
 
 <style scoped lang="scss">
@@ -20,11 +24,11 @@ const registerBGURL = new URL('@/assets/login-bg.png', import.meta.url).href
   flex: 1;
   display: flex;
 }
-.controller-panel{
+.controller-panel {
   height: 100%;
   width: 500px;
 }
-.register-bg{
+.register-bg {
   height: 100%;
   flex: 1;
 }

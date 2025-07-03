@@ -1,41 +1,51 @@
 <template>
   <div class="conference-record">
     <div class="video-panel">
-      <div class="video-player" v-if="videos.length">
-        <div class="video-item" v-for="video in videos" :key="video.path">
+      <div v-if="videos.length" class="video-player">
+        <div v-for="video in videos" class="video-item" :key="video.path">
           <div class="video-content">
-            <p class="video-user">{{ video.userId }}</p>
-            <video class="video-js vjs-default-skin my-video" controls></video>
+            <p class="video-user">
+              {{ video.userId }}
+            </p>
+            <video class="video-js vjs-default-skin my-video" controls />
           </div>
         </div>
       </div>
       <div class="video-convert-btn">
-        <button @click="()=>{
-          showConvert = !showConvert
-          showChapter = false;
-        }">Convert</button>
-        <button @click="()=>{
-          showChapter = !showChapter;
-          showConvert = false;
-        }">Chapter</button>
+        <button
+          @click="
+            () => {
+              showConvert = !showConvert;
+              showChapter = false;
+            }
+          "
+        >
+          Convert
+        </button>
+        <button
+          @click="
+            () => {
+              showChapter = !showChapter;
+              showConvert = false;
+            }
+          "
+        >
+          Chapter
+        </button>
       </div>
     </div>
     <div class="video-chapter" :class="{ visible: showChapter }">
       <p style="font-size: 20px; color: var(--primary-text-color)">Chapter</p>
       <div class="video-chapter-panel">
-        <Card
-          class="chapter"
-          v-for="chapter in conferenceChapters"
-          :key="chapter.title"
-        >
+        <Card v-for="chapter in conferenceChapters" class="chapter" :key="chapter.title">
           <template #header>
             <div
               :style="{
                 background: `url(${chapter.pic}) no-repeat center center`,
-                backgroundSize: '100% auto',
+                backgroundSize: '100% auto'
               }"
               class="chapter-photo"
-            ></div>
+            />
           </template>
           <template #content>
             <div class="chapter-content">
@@ -43,7 +53,9 @@
                 <FontAwesomeIcon :icon="faVideo" />
               </div>
               <div class="text">
-                <p class="title">{{ chapter.title }}</p>
+                <p class="title">
+                  {{ chapter.title }}
+                </p>
                 <p class="description">{{ chapter.startTime }}s</p>
               </div>
             </div>
@@ -53,18 +65,15 @@
     </div>
     <div class="video-convert" :class="{ visible: showConvert }">
       <Editor
-        class="video-convert-editor"
-        editorStyle="height: calc(100% - 43.35px)"
         v-model="convertResult"
+        class="video-convert-editor"
+        editor-style="height: calc(100% - 43.35px)"
       >
-        <template v-slot:toolbar>
+        <template #toolbar>
           <span class="ql-formats">
-            <button v-tooltip.bottom="'Bold'" class="ql-bold"></button>
-            <button v-tooltip.bottom="'Italic'" class="ql-italic"></button>
-            <button
-              v-tooltip.bottom="'Underline'"
-              class="ql-underline"
-            ></button>
+            <button v-tooltip.bottom="'Bold'" class="ql-bold" />
+            <button v-tooltip.bottom="'Italic'" class="ql-italic" />
+            <button v-tooltip.bottom="'Underline'" class="ql-underline" />
           </span>
         </template>
       </Editor>
@@ -73,20 +82,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, nextTick } from "vue";
-import { Card } from "primevue";
-import Editor from "primevue/editor";
-import { faVideo } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { useRoute } from "vue-router";
-import videojs from "video.js";
-import type Player from "video.js/dist/types/player";
-import "video.js/dist/video-js.css";
-import { getVideoPaths } from "@/request/meeting"; // ✅ 不再用 getVideoBlob
+import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import { Card } from 'primevue';
+import Editor from 'primevue/editor';
+import { faVideo } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { useRoute } from 'vue-router';
+import videojs from 'video.js';
+import type Player from 'video.js/dist/types/player';
+import 'video.js/dist/video-js.css';
+import { getVideoPaths } from '@/request/meeting'; // ✅ 不再用 getVideoBlob
 
 // 获取路由参数
 const route = useRoute();
-const meetingId = (route.params.meetingId as string) || "";
+const meetingId = (route.params.meetingId as string) || '';
 
 // 视频数据结构
 interface VideoRecord {
@@ -103,27 +112,27 @@ const showChapter = ref(false);
 // 示例章节
 const conferenceChapters = ref([
   {
-    title: "Chapter 1",
+    title: 'Chapter 1',
     startTime: 0,
-    pic: new URL("@/assets/record/record-alt.jpg", import.meta.url).href,
+    pic: new URL('@/assets/record/record-alt.jpg', import.meta.url).href
   },
   {
-    title: "Chapter 2",
+    title: 'Chapter 2',
     startTime: 10,
-    pic: new URL("@/assets/record/record-alt.jpg", import.meta.url).href,
+    pic: new URL('@/assets/record/record-alt.jpg', import.meta.url).href
   },
   {
-    title: "Chapter 3",
+    title: 'Chapter 3',
     startTime: 20,
-    pic: new URL("@/assets/record/record-alt.jpg", import.meta.url).href,
-  },
+    pic: new URL('@/assets/record/record-alt.jpg', import.meta.url).href
+  }
 ]);
 
-const convertResult = ref("...");
+const convertResult = ref('...');
 
 async function loadVideos() {
   if (!meetingId) {
-    console.error("缺少 meetingId 参数");
+    console.error('缺少 meetingId 参数');
     return;
   }
   try {
@@ -135,7 +144,7 @@ async function loadVideos() {
       videos.value.push({ path: rec.path, userId: rec.userId, url });
     }
   } catch (err) {
-    console.error("加载视频失败：", err);
+    console.error('加载视频失败：', err);
   }
 }
 
@@ -143,27 +152,26 @@ onMounted(async () => {
   await loadVideos();
   await nextTick(); // 等待 DOM 渲染后再初始化播放器
 
-  const videoEls =
-    document.querySelectorAll<HTMLVideoElement>("video.my-video");
+  const videoEls = document.querySelectorAll<HTMLVideoElement>('video.my-video');
   videoEls.forEach((el, index) => {
     const player = videojs(el, {
       controls: true,
       autoplay: false,
-      preload: "auto",
+      preload: 'auto',
       fluid: true,
       sources: [
         {
           src: videos.value[index].url,
-          type: "video/mp4",
-        },
-      ],
+          type: 'video/mp4'
+        }
+      ]
     });
     players[index] = player;
   });
 });
 
 onBeforeUnmount(() => {
-  players.forEach((p) => p.dispose());
+  players.forEach(p => p.dispose());
 });
 </script>
 

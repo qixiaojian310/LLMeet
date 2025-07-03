@@ -1,12 +1,12 @@
 // stores/counter.js
-import { defineStore } from 'pinia'
+import { defineStore } from 'pinia';
 
 export const useUserStore = defineStore('user', {
   state: () => {
     return {
       isLoggedIn: false,
-      username: '',
-    }
+      username: ''
+    };
   },
   // 也可以这样定义
   // state: () => ({ count: 0 })
@@ -19,5 +19,5 @@ export const useUserStore = defineStore('user', {
       this.isLoggedIn = false;
       this.username = '';
     }
-  },
-})
+  }
+});

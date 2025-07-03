@@ -1,5 +1,5 @@
-import { livekitRequestWrapper } from "./livekitRequestWrapper";
-import { requestWrapper } from "./requestWrapper";
+import { livekitRequestWrapper } from './livekitRequestWrapper';
+import { requestWrapper } from './requestWrapper';
 
 export interface MeetingInfo {
   title: string;
@@ -10,18 +10,18 @@ export interface MeetingInfo {
 
 export const deleteMeeting = async (meetingId: string) => {
   const res = await requestWrapper(
-    "/meeting/delete",
+    '/meeting/delete',
     {
-      meetingId: meetingId,
+      meetingId: meetingId
     },
     {
-      method: "POST",
+      method: 'POST'
     },
     true
   );
-  if (typeof res !== "number") {
+  if (typeof res !== 'number') {
     const body = await res.json();
-    console.log("res", body);
+    console.log('res', body);
     return body;
   } else {
     return res;
@@ -30,16 +30,16 @@ export const deleteMeeting = async (meetingId: string) => {
 
 export const createMeeting = async (meetingInfo: MeetingInfo) => {
   const res = await requestWrapper(
-    "/meeting/create",
+    '/meeting/create',
     meetingInfo,
     {
-      method: "POST",
+      method: 'POST'
     },
     true
   );
-  if (typeof res !== "number") {
+  if (typeof res !== 'number') {
     const body = await res.json();
-    console.log("res", body);
+    console.log('res', body);
     return body;
   } else {
     return res;
@@ -48,18 +48,18 @@ export const createMeeting = async (meetingInfo: MeetingInfo) => {
 
 export const getMeeting = async (meetingId: string) => {
   const res = await requestWrapper(
-    "/meeting/get",
+    '/meeting/get',
     {
       meetingId
     },
     {
-      method: "POST",
+      method: 'POST'
     },
     true
   );
-  if (typeof res !== "number") {
+  if (typeof res !== 'number') {
     const body = await res.json();
-    console.log("res", body);
+    console.log('res', body);
     return body;
   } else {
     return res;
@@ -68,19 +68,19 @@ export const getMeeting = async (meetingId: string) => {
 
 export const getMeetingToken = async (meetingId: string, username: string) => {
   const res = await livekitRequestWrapper(
-    "/meeting/token",
+    '/meeting/token',
     {
       meetingId: meetingId,
-      username,
+      username
     },
     {
-      method: "POST",
+      method: 'POST'
     },
     true
   );
-  if (typeof res !== "number") {
+  if (typeof res !== 'number') {
     const body = await res.json();
-    console.log("res", body);
+    console.log('res', body);
     return body;
   } else {
     return res;
@@ -88,21 +88,21 @@ export const getMeetingToken = async (meetingId: string, username: string) => {
 };
 
 export const startBot = async (meetingId: string) => {
-  console.log("startBot", meetingId);
-  
+  console.log('startBot', meetingId);
+
   const res = await livekitRequestWrapper(
-    "/meeting/start_bot",
+    '/meeting/start_bot',
     {
-      meetingId: meetingId,
+      meetingId: meetingId
     },
     {
-      method: "POST",
+      method: 'POST'
     },
     true
   );
-  if (typeof res !== "number") {
+  if (typeof res !== 'number') {
     const body = await res.json();
-    console.log("res", body);
+    console.log('res', body);
     return body;
   } else {
     return res;
@@ -111,16 +111,16 @@ export const startBot = async (meetingId: string) => {
 
 export const stopBot = async () => {
   const res = await livekitRequestWrapper(
-    "/meeting/stop_bot",
+    '/meeting/stop_bot',
     {},
     {
-      method: "POST",
+      method: 'POST'
     },
     true
   );
-  if (typeof res !== "number") {
+  if (typeof res !== 'number') {
     const body = await res.json();
-    console.log("res", body);
+    console.log('res', body);
     return body;
   } else {
     return res;
@@ -129,16 +129,16 @@ export const stopBot = async () => {
 
 export const getAllMeetingListByUserId = async () => {
   const res = await requestWrapper(
-    "/meeting/getAll",
+    '/meeting/getAll',
     undefined,
     {
-      method: "GET",
+      method: 'GET'
     },
     true
   );
-  if (typeof res !== "number") {
+  if (typeof res !== 'number') {
     const body = await res.json();
-    console.log("res", body);
+    console.log('res', body);
     return body;
   } else {
     return res;
@@ -152,13 +152,13 @@ export const getVideoBlob = async (path: string) => {
       path
     },
     {
-      method: "POST",
+      method: 'POST'
     },
-    true,
+    true
   );
-  if (typeof res !== "number") {
+  if (typeof res !== 'number') {
     const body = await res.blob();
-    console.log("res", body);
+    console.log('res', body);
     return body;
   } else {
     return res;
@@ -172,15 +172,15 @@ export const getVideoPaths = async (meetingId: string) => {
       meetingId
     },
     {
-      method: "POST",
+      method: 'POST'
     },
-    true,
+    true
   );
-  if (typeof res !== "number") {
+  if (typeof res !== 'number') {
     const body = await res.json();
-    console.log("res", body);
+    console.log('res', body);
     return body;
   } else {
     return res;
   }
-}
+};

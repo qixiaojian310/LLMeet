@@ -1,5 +1,5 @@
-import { requestWrapper } from "./requestWrapper";
-import { userStaticStore } from "@/utils/staticStore";
+import { requestWrapper } from './requestWrapper';
+import { userStaticStore } from '@/utils/staticStore';
 
 interface BasicUserInfo {
   username: string;
@@ -25,22 +25,22 @@ interface ConvertedUserInfo {
 
 export const signin = async (userInfo: BasicUserInfo) => {
   const res = await requestWrapper(
-    "/api/auth/login",
+    '/api/auth/login',
     userInfo,
     {
-      method: "POST",
+      method: 'POST'
     },
     false
   );
-  if (typeof res !== "number") {
+  if (typeof res !== 'number') {
     const body = await res.json();
-    console.log("res", body);
-    
-    await userStaticStore.set("accessToken", body.accessToken);
+    console.log('res', body);
+
+    await userStaticStore.set('accessToken', body.accessToken);
     const user: StoreUserInfo = {
-      username: body.username,
+      username: body.username
     };
-    await userStaticStore.set("userInfo", JSON.stringify(user));
+    await userStaticStore.set('userInfo', JSON.stringify(user));
     await userStaticStore.save();
     return body;
   } else {
@@ -50,16 +50,16 @@ export const signin = async (userInfo: BasicUserInfo) => {
 
 export const signup = async (userInfo: RegisterUserInfo) => {
   const res = await requestWrapper(
-    "/api/auth/register",
+    '/api/auth/register',
     userInfo,
     {
-      method: "POST",
+      method: 'POST'
     },
     false
   );
-  if (typeof res !== "number") {
+  if (typeof res !== 'number') {
     const body = await res.json();
-    console.log("res", body);
+    console.log('res', body);
     if (body.success) {
       return body;
     }

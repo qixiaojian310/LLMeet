@@ -1,11 +1,5 @@
 <template>
-  <Form
-    v-slot="$form"
-    :initialValues
-    :resolver
-    @submit="onFormSubmit"
-    class="form"
-  >
+  <Form v-slot="$form" :initialValues :resolver class="form" @submit="onFormSubmit">
     <div class="form-text">
       <IftaLabel>
         <InputText
@@ -17,52 +11,29 @@
         />
         <label for="meetingNumber">Meeting Number</label>
 
-        <Message
-          v-if="$form.meetingNumber?.invalid"
-          severity="error"
-          size="small"
-          variant="simple"
-          >{{ $form.meetingNumber.error?.message }}</Message
-        >
+        <Message v-if="$form.meetingNumber?.invalid" severity="error" size="small" variant="simple">
+          {{ $form.meetingNumber.error?.message }}
+        </Message>
       </IftaLabel>
     </div>
     <div class="form-text">
       <IftaLabel>
-        <InputText
-          id="username"
-          name="username"
-          type="text"
-          placeholder="Username"
-          fluid
-        />
+        <InputText id="username" name="username" type="text" placeholder="Username" fluid />
         <label for="username">Your meeting name</label>
-        <Message
-          v-if="$form.username?.invalid"
-          severity="error"
-          size="small"
-          variant="simple"
-          >{{ $form.username.error?.message }}</Message
-        >
+        <Message v-if="$form.username?.invalid" severity="error" size="small" variant="simple">
+          >
+          {{ $form.username.error?.message }}
+        </Message>
       </IftaLabel>
     </div>
     <div class="form-check-box">
       <p>Meeting option</p>
       <div class="form-check">
-        <Checkbox
-          id="openMic"
-          name="meetingOption"
-          inputId="openMic"
-          value="openMic"
-        />
+        <Checkbox id="openMic" name="meetingOption" input-id="openMic" value="openMic" />
         <label for="openMic">Open Mic</label>
       </div>
       <div class="form-check">
-        <Checkbox
-          id="openCamera"
-          name="meetingOption"
-          inputId="openCamera"
-          value="openCamera"
-        />
+        <Checkbox id="openCamera" name="meetingOption" input-id="openCamera" value="openCamera" />
         <label for="openCamera">Open Camera</label>
       </div>
     </div>
@@ -74,39 +45,39 @@
 </template>
 
 <script setup lang="ts">
-import { Form, FormSubmitEvent } from "@primevue/forms";
-import { Button, IftaLabel, InputText, Message, Checkbox } from "primevue";
-import { reactive } from "vue";
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { faChampagneGlasses } from "@fortawesome/free-solid-svg-icons";
-import { router } from "@/router";
-import { useUserStore } from "@/stores/userStore";
-import { onMounted } from "vue";
-import { getMeeting, getMeetingToken } from "@/request/meeting";
-import { useMeetingStore } from "@/stores/meetingStore";
-import { message } from "ant-design-vue";
+import { Form, FormSubmitEvent } from '@primevue/forms';
+import { Button, IftaLabel, InputText, Message, Checkbox } from 'primevue';
+import { reactive } from 'vue';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { faChampagneGlasses } from '@fortawesome/free-solid-svg-icons';
+import { router } from '@/router';
+import { useUserStore } from '@/stores/userStore';
+import { onMounted } from 'vue';
+import { getMeeting, getMeetingToken } from '@/request/meeting';
+import { useMeetingStore } from '@/stores/meetingStore';
+import { message } from 'ant-design-vue';
 
 const userStore = useUserStore();
 const meetingStore = useMeetingStore();
 const initialValues = reactive({
   username: userStore.username,
-  meetingNumber: "",
-  meetingOption: [],
+  meetingNumber: '',
+  meetingOption: []
 });
 
 const resolver = ({ values }: any) => {
   const errors: any = {};
 
   if (!values.username) {
-    errors.username = [{ message: "Username is required." }];
+    errors.username = [{ message: 'Username is required.' }];
   }
   if (!values.meetingNumber) {
-    errors.meetingNumber = [{ message: "Meeting number is required." }];
+    errors.meetingNumber = [{ message: 'Meeting number is required.' }];
   }
 
   return {
     values, // (Optional) Used to pass current form values to submit event.
-    errors,
+    errors
   };
 };
 
@@ -114,34 +85,22 @@ const onFormSubmit = async ({ valid, values }: FormSubmitEvent) => {
   if (valid) {
     const res = await getMeeting(values.meetingNumber);
     if (!res.success) {
-      message.error("Meeting not found");
+      message.error('Meeting not found');
       return;
     }
-    const tokenRes = await getMeetingToken(
-      values.meetingNumber,
-      values.username
-    );
-    if (typeof tokenRes !== "number") {
+    const tokenRes = await getMeetingToken(values.meetingNumber, values.username);
+    if (typeof tokenRes !== 'number') {
       meetingStore.setMeetingInfo({
         meetingId: res.meeting.meetingId,
         meetingToken: tokenRes.token,
         meetingName: res.meeting.title,
         description: res.meeting.description,
-        startTime: new Date(res.meeting.startTime)
-          .toISOString()
-          .slice(0, 19)
-          .replace("T", " "),
-        endTime: new Date(res.meeting.endTime)
-          .toISOString()
-          .slice(0, 19)
-          .replace("T", " "),
-        createTime: new Date(res.meeting.createdAt)
-          .toISOString()
-          .slice(0, 19)
-          .replace("T", " "),
+        startTime: new Date(res.meeting.startTime).toISOString().slice(0, 19).replace('T', ' '),
+        endTime: new Date(res.meeting.endTime).toISOString().slice(0, 19).replace('T', ' '),
+        createTime: new Date(res.meeting.createdAt).toISOString().slice(0, 19).replace('T', ' ')
       });
-      router.push("/meeting");
-      message.success("Meeting entered successfully");
+      router.push('/meeting');
+      message.success('Meeting entered successfully');
     } else {
       message.error('Meeting token generation failed');
     }
@@ -149,7 +108,7 @@ const onFormSubmit = async ({ valid, values }: FormSubmitEvent) => {
 };
 
 onMounted(() => {
-  console.log("form mounted", userStore.username);
+  console.log('form mounted', userStore.username);
 });
 </script>
 

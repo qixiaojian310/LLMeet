@@ -1,11 +1,11 @@
 import { router } from '@/router';
-import {useUserStore} from '../stores/userStore';
-import {userStaticStore} from '@/utils/staticStore';
-import {fetch} from '@tauri-apps/plugin-http'
+import { useUserStore } from '../stores/userStore';
+import { userStaticStore } from '@/utils/staticStore';
+import { fetch } from '@tauri-apps/plugin-http';
 import { message } from 'ant-design-vue';
 let expireCounter = 0;
 const MAX_RETRY_TIME = 0;
-type methodType = 'GET' | 'POST' | 'PUT' | 'DELETE'
+type methodType = 'GET' | 'POST' | 'PUT' | 'DELETE';
 const BASE_URL = 'http://localhost:8080';
 // const BASE_URL = 'http://192.168.1.104:8000';
 
@@ -19,16 +19,16 @@ export const requestWrapper = async (
   requestURL: string,
   body?: object,
   options?: {
-    method?: methodType
-    signal?: AbortSignal
+    method?: methodType;
+    signal?: AbortSignal;
   },
   useAuth = true,
-  contentType: string = 'application/json',
+  contentType: string = 'application/json'
 ): Promise<number | Response> => {
   const { method, signal } = options ?? {};
-  
+
   const headers: Record<string, string> = {
-    'Content-Type': contentType,
+    'Content-Type': contentType
   };
 
   if (useAuth) {
@@ -42,7 +42,7 @@ export const requestWrapper = async (
     method: method ?? 'POST',
     headers,
     body: body ? JSON.stringify(body) : null,
-    signal,
+    signal
   };
 
   try {
@@ -61,7 +61,7 @@ export const requestWrapper = async (
           await userStaticStore.delete('accessToken');
           await userStaticStore.save();
           userStore.logout();
-          router.push({name: 'LoginForm'});
+          router.push({ name: 'LoginForm' });
           message.error('Login expired, please login again');
           return 401;
         }

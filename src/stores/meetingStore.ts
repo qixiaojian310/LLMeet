@@ -1,5 +1,5 @@
 // stores/counter.js
-import { defineStore } from 'pinia'
+import { defineStore } from 'pinia';
 
 interface MeetingInfo {
   meetingId: string;
@@ -8,20 +8,20 @@ interface MeetingInfo {
   description: string;
   startTime: string;
   endTime: string;
-  createTime: string; 
+  createTime: string;
 }
 
 export const useMeetingStore = defineStore('meeting', {
   state: () => {
     return {
-      meetingId: "",
+      meetingId: '',
       meetingToken: '',
       meetingName: '',
       description: '',
       startTime: '',
       endTime: '',
-      createTime: '',
-    }
+      createTime: ''
+    };
   },
   // 也可以这样定义
   // state: () => ({ count: 0 })
@@ -36,13 +36,13 @@ export const useMeetingStore = defineStore('meeting', {
       this.createTime = meetingInfo.createTime;
     },
     clearMeetingInfo() {
-      this.meetingId = "";
-      this.meetingToken = "";
-      this.meetingName = "";
-      this.description = "";
-      this.startTime = "";
-      this.endTime = "";
-      this.createTime = "";
+      this.meetingId = '';
+      this.meetingToken = '';
+      this.meetingName = '';
+      this.description = '';
+      this.startTime = '';
+      this.endTime = '';
+      this.createTime = '';
     }
-  },
-})
+  }
+});

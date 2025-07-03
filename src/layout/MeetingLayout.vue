@@ -4,9 +4,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
-
-</script>
+<script setup lang="ts"></script>
 
 <style scoped lang="scss">
 .meeting-panel {
@@ -15,7 +13,7 @@
   flex: 1;
 
   position: relative;
-  .home-redirect{
+  .home-redirect {
     position: absolute;
     top: 10px;
     right: 10px;

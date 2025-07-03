@@ -4,7 +4,9 @@
       <Toolbar :buttons="navigationItems" />
     </div>
     <div class="main-panel-box">
-      <div class="title">{{ router.currentRoute.value.meta.title }}</div>
+      <div class="title">
+        {{ router.currentRoute.value.meta.title }}
+      </div>
       <div class="content">
         <RouterView />
       </div>
@@ -13,32 +15,28 @@
 </template>
 
 <script setup lang="ts">
-import Toolbar from "@/coreComponents/Toolbar.vue";
-import {
-  faFileVideo,
-  faHouse,
-  faSquarePlus,
-} from "@fortawesome/free-solid-svg-icons";
-import { ref } from "vue";
-import { RouterView } from "vue-router";
-import { router } from "@/router";
+import Toolbar from '@/coreComponents/Toolbar.vue';
+import { faFileVideo, faHouse, faSquarePlus } from '@fortawesome/free-solid-svg-icons';
+import { ref } from 'vue';
+import { RouterView } from 'vue-router';
+import { router } from '@/router';
 
 const navigationItems = ref([
   {
-    title: "Home",
+    title: 'Home',
     icon: faHouse,
-    path: "",
+    path: ''
   },
   {
-    title: "Join Conference",
+    title: 'Join Conference',
     icon: faSquarePlus,
-    path: "meeting-join-form",
+    path: 'meeting-join-form'
   },
   {
-    title: "Records",
+    title: 'Records',
     icon: faFileVideo,
-    path: "conference-records",
-  },
+    path: 'conference-records'
+  }
 ]);
 </script>
 
@@ -51,7 +49,7 @@ const navigationItems = ref([
   .toolbar {
     width: 150px;
     background: var(--primary-background-color);
-    position: relative; 
+    position: relative;
     z-index: 10;
   }
 

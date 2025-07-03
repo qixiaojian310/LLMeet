@@ -1,29 +1,45 @@
 <template>
   <div class="main-panel">
-    <div class="main-panel-header"
-      :style="{ background: `url(${bgURL}) no-repeat center center`, backgroundSize: '100% auto' }">
+    <div
+      class="main-panel-header"
+      :style="{ background: `url(${bgURL}) no-repeat center center`, backgroundSize: '100% auto' }"
+    >
       <div class="main-panel-header-next-meet">
         <p>Upcoming Meeting at {{ meetingTime }}</p>
       </div>
       <div class="main-panel-header-time">
-        <p class="time">{{ nowTime.time }}</p>
-        <p class="date">{{ nowTime.date }}</p>
+        <p class="time">
+          {{ nowTime.time }}
+        </p>
+        <p class="date">
+          {{ nowTime.date }}
+        </p>
       </div>
     </div>
     <div class="meeting-tool">
       <Card v-for="tool in tools" :key="tool.title" @click="redirect(tool.path)">
         <template #header>
-          <div :style="{ background: `url(${tool.photo}) no-repeat center center`, backgroundSize: '100% auto' }"
-            alt="Meeting Photo" class="meeting-photo"></div>
+          <div
+            :style="{
+              background: `url(${tool.photo}) no-repeat center center`,
+              backgroundSize: '100% auto'
+            }"
+            alt="Meeting Photo"
+            class="meeting-photo"
+          />
         </template>
         <template #content>
           <div class="content">
             <div class="icon">
-              <FontAwesomeIcon :icon="tool.icon"></FontAwesomeIcon>
+              <FontAwesomeIcon :icon="tool.icon" />
             </div>
             <div class="text">
-              <p class="title">{{ tool.title }}</p>
-              <p class="description">{{ tool.description }}</p>
+              <p class="title">
+                {{ tool.title }}
+              </p>
+              <p class="description">
+                {{ tool.description }}
+              </p>
             </div>
           </div>
         </template>
@@ -39,7 +55,12 @@ import { ToolCardItem } from '@/types/mainLayout/toolbar';
 import { faPlus, faUser, faVideo } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { router } from '@/router';
-const meetingTime = ref(new Date(new Date().getTime() + 3 * 60 * 60 * 1000).toISOString().replace('T', ' ').substring(0, 19));
+const meetingTime = ref(
+  new Date(new Date().getTime() + 3 * 60 * 60 * 1000)
+    .toISOString()
+    .replace('T', ' ')
+    .substring(0, 19)
+);
 
 const nowTime = ref({
   date: '',
@@ -58,7 +79,7 @@ const updateNowTime = () => {
   const timePart = dateObj.toTimeString().split(' ')[0];
   nowTime.value = {
     date: datePart,
-    time: timePart,
+    time: timePart
   };
 };
 
@@ -71,27 +92,28 @@ const tools = ref<ToolCardItem[]>([
     title: 'New Meeting',
     icon: faPlus,
     photo: new URL('@/assets/card/meeting.jpg', import.meta.url).href,
-    description: "Create a new meeting",
-    path: 'meeting-schedule-form',
-  }, {
+    description: 'Create a new meeting',
+    path: 'meeting-schedule-form'
+  },
+  {
     title: 'Join Meeting',
     icon: faUser,
     photo: new URL('@/assets/card/join.jpg', import.meta.url).href,
-    description: "Join a meeting",
+    description: 'Join a meeting',
     path: 'meeting-join-form'
   },
   {
     title: 'View Record',
     icon: faVideo,
     photo: new URL('@/assets/card/record.jpg', import.meta.url).href,
-    description: "View meeting record",
+    description: 'View meeting record',
     path: 'conference-records'
   }
-])
+]);
 
-const redirect = (path:string) => {
-  router.push({path:`/home/${path}`})
-}
+const redirect = (path: string) => {
+  router.push({ path: `/home/${path}` });
+};
 
 onMounted(() => {
   updateNowTime();
@@ -104,7 +126,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped lang="scss">
-@use "sass:math";
+@use 'sass:math';
 $scrollbar-width: 4px;
 
 .main-panel {
@@ -183,13 +205,13 @@ $scrollbar-width: 4px;
     /* 滚动条轨道（背景） */
     &::-webkit-scrollbar-track {
       background: #f0f0f0;
-      border-radius: math.div($scrollbar-width,2);
+      border-radius: math.div($scrollbar-width, 2);
     }
 
     /* 滚动条滑块（thumb） */
     &::-webkit-scrollbar-thumb {
       background: #888;
-      border-radius: math.div($scrollbar-width,2);
+      border-radius: math.div($scrollbar-width, 2);
     }
 
     /* 滑块悬停时 */

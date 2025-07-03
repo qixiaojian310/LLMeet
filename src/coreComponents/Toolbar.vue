@@ -1,8 +1,14 @@
 <template>
   <div class="toolbar-view">
-    <Button severity="contrast" class="toolbar-button" v-for="button in props.buttons" :key="button.title" variant="text"
-      @click="redirect(button.path)">
-      <FontAwesomeIcon :icon="button.icon"></FontAwesomeIcon>
+    <Button
+      v-for="button in props.buttons"
+      :key="button.title"
+      severity="contrast"
+      class="toolbar-button"
+      variant="text"
+      @click="redirect(button.path)"
+    >
+      <FontAwesomeIcon :icon="button.icon" />
       <p>{{ button.title }}</p>
     </Button>
   </div>
@@ -17,14 +23,13 @@ import { router } from '@/router';
 const props = defineProps({
   buttons: {
     type: Array<ToolbarItem>,
-    default: () => [],
-  },
-})
+    default: () => []
+  }
+});
 
 const redirect = (path: string) => {
-  router.push({ path:`/home/${path}` });
-}
-
+  router.push({ path: `/home/${path}` });
+};
 </script>
 
 <style scoped lang="scss">
@@ -33,7 +38,7 @@ const redirect = (path: string) => {
   padding: 1rem 1rem;
   display: flex;
   justify-content: start;
-  p{
+  p {
     margin: 0;
   }
 }

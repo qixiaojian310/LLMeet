@@ -12,7 +12,9 @@
         <div class="conference-content">
           <div class="text">
             <h3>{{ conference.title }}</h3>
-            <p class="description">{{ conference.description }}</p>
+            <p class="description">
+              {{ conference.description }}
+            </p>
             <div class="time-info">
               <div class="time-item">
                 <FontAwesomeIcon :icon="faClock" />
@@ -29,10 +31,12 @@
       <template #footer>
         <div class="conference-footer">
           <AvatarGroup>
-            <Avatar v-for="participant in conference.participants || []" 
-                   :key="participant" 
-                   shape="circle"
-                   :label="participant.toString()" />
+            <Avatar
+              v-for="participant in conference.participants || []"
+              :key="participant"
+              shape="circle"
+              :label="participant.toString()"
+            />
           </AvatarGroup>
           <Button severity="info" class="toolbar-button" @click="redirect(conference.meetingId)">
             <FontAwesomeIcon :icon="faPlay" />
@@ -46,7 +50,7 @@
 
 <script setup lang="ts">
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faPlay,faVideo,faHourglassEnd, faClock } from '@fortawesome/free-solid-svg-icons';
+import { faPlay, faVideo, faHourglassEnd, faClock } from '@fortawesome/free-solid-svg-icons';
 import { Card, Avatar, AvatarGroup, Button, Tag } from 'primevue';
 import { ref } from 'vue';
 import { router } from '@/router';
@@ -69,13 +73,15 @@ const conferences = ref<Conference[]>([]);
 
 const formatDateTime = (dateString: string) => {
   const date = new Date(dateString);
-  return date.toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  }).replace(/\//g, '-');
+  return date
+    .toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+    .replace(/\//g, '-');
 };
 
 const formatDuration = (start: string, end: string) => {
@@ -87,10 +93,14 @@ const formatDuration = (start: string, end: string) => {
 
 const getStatusSeverity = (status: string) => {
   switch (status.toLowerCase()) {
-    case 'ready': return 'success';
-    case 'ended': return 'info';
-    case 'processing': return 'warning';
-    default: return 'secondary';
+    case 'ready':
+      return 'success';
+    case 'ended':
+      return 'info';
+    case 'processing':
+      return 'warning';
+    default:
+      return 'secondary';
   }
 };
 
@@ -130,7 +140,9 @@ onMounted(async () => {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition:
+      transform 0.2s,
+      box-shadow 0.2s;
 
     &:hover {
       transform: translateY(-5px);
@@ -143,7 +155,7 @@ onMounted(async () => {
       align-items: center;
       font-weight: 600;
       margin-bottom: 12px;
-      
+
       > div {
         display: flex;
         align-items: center;
@@ -155,7 +167,7 @@ onMounted(async () => {
       flex: 1;
       display: flex;
       flex-direction: column;
-      
+
       h3 {
         margin: 0 0 8px 0;
         font-size: 1.1rem;
@@ -170,7 +182,7 @@ onMounted(async () => {
 
       .time-info {
         margin-top: auto;
-        
+
         .time-item {
           display: flex;
           align-items: center;

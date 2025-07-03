@@ -1,18 +1,26 @@
 <template>
   <div class="meeting-view-container">
     <div class="header-panel">
-      <Button severity="secondary" style="position: relative" @click="
-        () => {
-          openMeetingInfo = !openMeetingInfo;
-        }
-      ">
+      <Button
+        severity="secondary"
+        style="position: relative"
+        @click="
+          () => {
+            openMeetingInfo = !openMeetingInfo;
+          }
+        "
+      >
         <img height="35px" :src="iconPath" alt="Avatar" />
         <span>Meeting Info</span>
       </Button>
       <div v-if="openMeetingInfo" class="meeting-info">
-        <div class="meeting-info-item" v-for="item in meetingInfo" :key="item.title">
-          <p class="title">{{ item.title }}</p>
-          <p class="value">{{ item.value }}</p>
+        <div v-for="item in meetingInfo" class="meeting-info-item" :key="item.title">
+          <p class="title">
+            {{ item.title }}
+          </p>
+          <p class="value">
+            {{ item.value }}
+          </p>
         </div>
       </div>
     </div>
@@ -22,11 +30,15 @@
           <!-- 主视频区域 -->
           <div class="main-video">
             <div ref="mainVideoRef" />
-            <Button class="expander" severity="secondary" @click="
-              () => {
-                openThumbnails = !openThumbnails;
-              }
-            ">
+            <Button
+              class="expander"
+              severity="secondary"
+              @click="
+                () => {
+                  openThumbnails = !openThumbnails;
+                }
+              "
+            >
               <FontAwesomeIcon v-if="openThumbnails" :icon="faChevronRight" size="1x" />
               <FontAwesomeIcon v-else :icon="faChevronLeft" size="1x" />
             </Button>
@@ -34,10 +46,15 @@
 
           <!-- 缩略图区域 -->
           <div :class="`thumbnails ${openThumbnails ? 'open' : 'closed'}`">
-            <div v-for="item in attachedTracks.filter(
-              (item) => item.participantSid !== focusedParticipantSid
-            )" :key="item.participantSid" class="thumbnail" @click="focusedParticipantSid = item.participantSid">
-              <div :ref="(el) => mountVideo(el, item.participantSid)" />
+            <div
+              v-for="item in attachedTracks.filter(
+                item => item.participantSid !== focusedParticipantSid
+              )"
+              :key="item.participantSid"
+              class="thumbnail"
+              @click="focusedParticipantSid = item.participantSid"
+            >
+              <div :ref="el => mountVideo(el, item.participantSid)" />
             </div>
           </div>
         </div>
@@ -56,8 +73,10 @@
         <p class="title">Video</p>
       </Button>
       <Button type="button" severity="secondary" @click="toggleAudio">
-        <FontAwesomeIcon :icon="controllerState.audio ? faMicrophone : faMicrophoneSlash
-          " size="2x" />
+        <FontAwesomeIcon
+          :icon="controllerState.audio ? faMicrophone : faMicrophoneSlash"
+          size="2x"
+        />
         <p class="title">Audio</p>
       </Button>
       <Button type="button" severity="secondary" @click="leaveMeeting">
@@ -69,28 +88,24 @@
 </template>
 
 <script setup lang="ts">
+import { Room, RoomEvent, Track, RemoteTrack, VideoPresets } from 'livekit-client';
+import { ref, reactive, onMounted, watch, ComponentPublicInstance } from 'vue';
+import { Button } from 'primevue';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import {
-  Room,
-  RoomEvent,
-  Track,
-  RemoteTrack,
-  VideoPresets,
-} from "livekit-client";
-import {
-  ref,
-  reactive,
-  onMounted,
-  watch,
-  ComponentPublicInstance,
-} from "vue";
-import { Button } from "primevue";
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { faSignOutAlt, faMicrophone, faMicrophoneSlash, faVideo, faVideoSlash, faChevronRight, faChevronLeft } from "@fortawesome/free-solid-svg-icons";
-import { useMeetingStore } from "@/stores/meetingStore";
-import { router } from "@/router";
-import { computed } from "vue";
-import { deleteMeeting, stopBot } from "@/request/meeting";
-import { message } from "ant-design-vue";
+  faSignOutAlt,
+  faMicrophone,
+  faMicrophoneSlash,
+  faVideo,
+  faVideoSlash,
+  faChevronRight,
+  faChevronLeft
+} from '@fortawesome/free-solid-svg-icons';
+import { useMeetingStore } from '@/stores/meetingStore';
+import { router } from '@/router';
+import { computed } from 'vue';
+import { deleteMeeting, stopBot } from '@/request/meeting';
+import { message } from 'ant-design-vue';
 
 const mainVideoRef = ref<HTMLDivElement | null>(null);
 const controllerState = reactive({ video: true, audio: true });
@@ -99,7 +114,7 @@ const openThumbnails = ref(false);
 const openMeetingInfo = ref(false);
 const token = meetingStore.meetingToken;
 const wsUrl = import.meta.env.VITE_LIVEKIT_WS_URL;
-const iconPath = new URL("@/assets/icon/white.png", import.meta.url).href;
+const iconPath = new URL('@/assets/icon/white.png', import.meta.url).href;
 let room: Room;
 
 interface AttachedTrack {
@@ -114,29 +129,29 @@ interface MeetingInfoItem {
 const meetingInfo = computed<MeetingInfoItem[]>(() => {
   return [
     {
-      title: "Meeting Name",
-      value: meetingStore.meetingName,
+      title: 'Meeting Name',
+      value: meetingStore.meetingName
     },
     {
-      title: "Meeting ID",
-      value: meetingStore.meetingId,
+      title: 'Meeting ID',
+      value: meetingStore.meetingId
     },
     {
-      title: "Meeting Description",
-      value: meetingStore.description,
+      title: 'Meeting Description',
+      value: meetingStore.description
     },
     {
-      title: "Meeting Start Time",
-      value: meetingStore.startTime,
+      title: 'Meeting Start Time',
+      value: meetingStore.startTime
     },
     {
-      title: "Meeting End Time",
-      value: meetingStore.endTime,
+      title: 'Meeting End Time',
+      value: meetingStore.endTime
     },
     {
-      title: "Meeting Create Time",
-      value: meetingStore.createTime,
-    },
+      title: 'Meeting Create Time',
+      value: meetingStore.createTime
+    }
   ];
 });
 const attachedTracks = ref<AttachedTrack[]>([]);
@@ -151,28 +166,23 @@ watch(
   () => {
     if (!mainVideoRef.value) return;
     const focused = attachedTracks.value.find(
-      (item) => item.participantSid === focusedParticipantSid.value
+      item => item.participantSid === focusedParticipantSid.value
     );
 
-    mainVideoRef.value.innerHTML = "";
+    mainVideoRef.value.innerHTML = '';
     if (focused) {
-      focused.videoElement.style.width = "100%";
-      focused.videoElement.style.height = "100%";
-      focused.videoElement.style.objectFit = "contain";
+      focused.videoElement.style.width = '100%';
+      focused.videoElement.style.height = '100%';
+      focused.videoElement.style.objectFit = 'contain';
       mainVideoRef.value.appendChild(focused.videoElement);
       focused.videoElement.muted = true;
     }
   },
-  { flush: "post" }
+  { flush: 'post' }
 );
 
-const addOrUpdateAttachedTrack = (
-  arr: AttachedTrack[],
-  newTrack: AttachedTrack
-) => {
-  const index = arr.findIndex(
-    (item) => item.participantSid === newTrack.participantSid
-  );
+const addOrUpdateAttachedTrack = (arr: AttachedTrack[], newTrack: AttachedTrack) => {
+  const index = arr.findIndex(item => item.participantSid === newTrack.participantSid);
   if (index !== -1) {
     // 替换旧元素，避免重复
     arr[index] = newTrack;
@@ -182,24 +192,19 @@ const addOrUpdateAttachedTrack = (
 };
 
 // 挂载视频元素到缩略图区域
-const mountVideo = (
-  el: Element | ComponentPublicInstance | null,
-  participantSid: string
-) => {
+const mountVideo = (el: Element | ComponentPublicInstance | null, participantSid: string) => {
   if (!(el instanceof HTMLElement)) return;
   thumbnailContainers.value[participantSid] = el;
 
-  const trackItem = attachedTracks.value.find(
-    (item) => item.participantSid === participantSid
-  );
+  const trackItem = attachedTracks.value.find(item => item.participantSid === participantSid);
   console.log(trackItem);
 
   if (trackItem && !el.contains(trackItem.videoElement)) {
-    el.innerHTML = "";
+    el.innerHTML = '';
     const video = trackItem.videoElement;
-    video.style.width = "100%";
-    video.style.height = "auto";
-    video.style.objectFit = "contain";
+    video.style.width = '100%';
+    video.style.height = 'auto';
+    video.style.objectFit = 'contain';
     el.appendChild(video);
     video.muted = true;
   }
@@ -210,19 +215,19 @@ onMounted(async () => {
     adaptiveStream: true,
     dynacast: true,
     videoCaptureDefaults: { resolution: VideoPresets.h720.resolution },
-    webAudioMix: true,
+    webAudioMix: true
   });
 
   room
     .on(RoomEvent.TrackSubscribed, (track: RemoteTrack, _, participant) => {
-      console.log("Track subscribed");
+      console.log('Track subscribed');
 
       const videoElement = track.attach();
       videoElement.muted = true;
       addOrUpdateAttachedTrack(attachedTracks.value as AttachedTrack[], {
         participantSid: participant.sid,
         track,
-        videoElement,
+        videoElement
       });
 
       if (!focusedParticipantSid.value) {
@@ -230,66 +235,63 @@ onMounted(async () => {
       }
     })
     .on(RoomEvent.TrackUnsubscribed, (track: RemoteTrack) => {
-      track.detach().forEach((el) => el.remove());
+      track.detach().forEach(el => el.remove());
 
-      const index = attachedTracks.value.findIndex(
-        (item) => item.track.sid === track.sid
-      );
+      const index = attachedTracks.value.findIndex(item => item.track.sid === track.sid);
       if (index !== -1) {
         attachedTracks.value.splice(index, 1);
       }
 
       if (focusedParticipantSid.value === track.sid) {
-        focusedParticipantSid.value =
-          attachedTracks.value[0]?.participantSid || null;
+        focusedParticipantSid.value = attachedTracks.value[0]?.participantSid || null;
       }
     })
     .on(RoomEvent.LocalTrackPublished, (_, publication) => {
       console.log('published kind=', publication.kind);
       const videoPub = publication
         .getTrackPublications()
-        .find((pub) => pub.kind === Track.Kind.Video);
+        .find(pub => pub.kind === Track.Kind.Video);
       if (videoPub?.track) {
         const videoElement = videoPub.track.attach();
 
         addOrUpdateAttachedTrack(attachedTracks.value as AttachedTrack[], {
-          participantSid: "local",
+          participantSid: 'local',
           track: videoPub.track,
-          videoElement,
+          videoElement
         });
 
         if (!focusedParticipantSid.value) {
-          focusedParticipantSid.value = "local";
+          focusedParticipantSid.value = 'local';
         }
       }
     })
     .on(RoomEvent.AudioPlaybackStatusChanged, () => {
       if (!room.canPlaybackAudio) {
-        console.log("Audio playback is disabled");
+        console.log('Audio playback is disabled');
       }
     })
 
     .on(RoomEvent.Disconnected, () => {
-      console.log("Disconnected from room");
+      console.log('Disconnected from room');
     });
 
   try {
     await room.connect(wsUrl, token);
     await room.localParticipant.enableCameraAndMicrophone();
   } catch (err) {
-    console.error("LiveKit connect failed:", err);
+    console.error('LiveKit connect failed:', err);
     //撤回会议数据库的添加
     const res = await deleteMeeting(meetingStore.meetingId);
-    message.error("Meeting connection failed");
+    message.error('Meeting connection failed');
     if (res.success) {
-      message.success("Meeting deleted successfully");
+      message.success('Meeting deleted successfully');
     }
   }
 });
 
 const toggleVideo = () => {
   controllerState.video = !controllerState.video;
-  room.localParticipant.getTrackPublications().forEach((pub) => {
+  room.localParticipant.getTrackPublications().forEach(pub => {
     if (pub.kind === Track.Kind.Video && pub.track) {
       pub.track.mediaStreamTrack.enabled = controllerState.video;
     }
@@ -298,7 +300,7 @@ const toggleVideo = () => {
 
 const toggleAudio = () => {
   controllerState.audio = !controllerState.audio;
-  room.localParticipant.getTrackPublications().forEach((pub) => {
+  room.localParticipant.getTrackPublications().forEach(pub => {
     if (pub.kind === Track.Kind.Audio && pub.track) {
       pub.track.mediaStreamTrack.enabled = controllerState.audio;
     }
@@ -308,11 +310,11 @@ const toggleAudio = () => {
 const leaveMeeting = async () => {
   room.disconnect();
   meetingStore.clearMeetingInfo();
-  const res = await stopBot()
+  const res = await stopBot();
   console.log(res);
 
-  message.success('Meeting left successfully')
-  router.push({ name: "HomeView" });
+  message.success('Meeting left successfully');
+  router.push({ name: 'HomeView' });
 };
 </script>
 
@@ -429,7 +431,7 @@ const leaveMeeting = async () => {
               border-color: var(--primary-border-color);
             }
 
-            >div {
+            > div {
               width: 100%;
               background: black;
               display: flex;

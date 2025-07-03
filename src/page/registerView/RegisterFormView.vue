@@ -1,50 +1,26 @@
 <template>
-  <Form
-    v-slot="$form"
-    :initialValues
-    :resolver
-    @submit="onFormSubmit"
-    class="form"
-  >
+  <Form v-slot="$form" :initialValues :resolver class="form" @submit="onFormSubmit">
     <div class="title">Start meeting with LLMeet</div>
 
     <div class="form-text">
       <IftaLabel>
-        <InputText
-          id="username"
-          name="username"
-          type="text"
-          placeholder="Username"
-          fluid
-        />
+        <InputText id="username" name="username" type="text" placeholder="Username" fluid />
         <label for="username">Username</label>
-        <Message
-          v-if="$form.username?.invalid"
-          severity="error"
-          size="small"
-          variant="simple"
-          >{{ $form.username.error?.message }}</Message
-        >
+        <Message v-if="$form.username?.invalid" severity="error" size="small" variant="simple">
+          >
+          {{ $form.username.error?.message }}
+        </Message>
       </IftaLabel>
     </div>
     <div class="form-text">
       <IftaLabel>
-        <InputText
-          id="password"
-          name="password"
-          type="password"
-          placeholder="Password"
-          fluid
-        />
+        <InputText id="password" name="password" type="password" placeholder="Password" fluid />
         <label for="password">Password</label>
 
-        <Message
-          v-if="$form.password?.invalid"
-          severity="error"
-          size="small"
-          variant="simple"
-          >{{ $form.password.error?.message }}</Message
-        >
+        <Message v-if="$form.password?.invalid" severity="error" size="small" variant="simple">
+          >
+          {{ $form.password.error?.message }}
+        </Message>
       </IftaLabel>
     </div>
     <div class="form-text">
@@ -63,34 +39,34 @@
           severity="error"
           size="small"
           variant="simple"
-          >{{ $form.repeatPassword.error?.message }}</Message
         >
+          {{ $form.repeatPassword.error?.message }}
+        </Message>
       </IftaLabel>
     </div>
     <div class="form-text">
       <IftaLabel>
-        <InputText
-          id="email"
-          name="email"
-          placeholder="Email"
-          fluid
-        />
+        <InputText id="email" name="email" placeholder="Email" fluid />
         <label for="email">Email</label>
 
-        <Message
-          v-if="$form.email?.invalid"
-          severity="error"
-          size="small"
-          variant="simple"
-          >{{ $form.email.error?.message }}</Message
-        >
+        <Message v-if="$form.email?.invalid" severity="error" size="small" variant="simple">
+          >
+          {{ $form.email.error?.message }}
+        </Message>
       </IftaLabel>
     </div>
     <div class="form-check-box">
       <div class="goto-link">
-        <Button variant="link" @click="()=>{
-          router.push({name:'LoginForm'})
-        }"> Go to Login </Button>
+        <Button
+          variant="link"
+          @click="
+            () => {
+              router.push({ name: 'LoginForm' });
+            }
+          "
+        >
+          Go to Login
+        </Button>
       </div>
     </div>
     <Button type="submit" severity="secondary">
@@ -101,58 +77,54 @@
 </template>
 
 <script setup lang="ts">
-import { Form, FormSubmitEvent } from "@primevue/forms";
-import { Button, IftaLabel, InputText, Message } from "primevue";
-import { reactive } from "vue";
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { faChampagneGlasses } from "@fortawesome/free-solid-svg-icons";
-import { signup } from "@/request/authorization";
-import { router } from "@/router";
-import { message } from 'ant-design-vue'
-import { useUserStore } from "@/stores/userStore";
+import { Form, FormSubmitEvent } from '@primevue/forms';
+import { Button, IftaLabel, InputText, Message } from 'primevue';
+import { reactive } from 'vue';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { faChampagneGlasses } from '@fortawesome/free-solid-svg-icons';
+import { signup } from '@/request/authorization';
+import { router } from '@/router';
+import { message } from 'ant-design-vue';
+import { useUserStore } from '@/stores/userStore';
 
-const userStore = useUserStore()
+const userStore = useUserStore();
 const initialValues = reactive({
-  username: "",
-  password: "",
-  repeatPassword: "",
-  email: "",
+  username: '',
+  password: '',
+  repeatPassword: '',
+  email: ''
 });
 
 const resolver = ({ values }: any) => {
   const errors: any = {};
-  const passwordRegex =
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/;
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/;
 
   if (!values.username) {
-    errors.username = [{ message: "Username is required." }];
+    errors.username = [{ message: 'Username is required.' }];
   }
   if (!values.password) {
-    errors.password = [{ message: "Password is required." }];
+    errors.password = [{ message: 'Password is required.' }];
   } else if (!passwordRegex.test(values.password)) {
     errors.repeatPassword = [
       {
-        message:
-          "Password must include uppercase, lowercase, number and special character.",
-      },
+        message: 'Password must include uppercase, lowercase, number and special character.'
+      }
     ];
   } else if (values.password.length < 8) {
-    errors.password = [
-      { message: "Password must be at least 8 characters long." },
-    ];
+    errors.password = [{ message: 'Password must be at least 8 characters long.' }];
   }
   if (values.repeatPassword !== values.password) {
-    errors.repeatPassword = [{ message: "Your password is not same." }];
+    errors.repeatPassword = [{ message: 'Your password is not same.' }];
   }
   if (!values.email) {
-    errors.email = [{ message: "Email is required." }];
+    errors.email = [{ message: 'Email is required.' }];
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
-    errors.email = [{ message: "Invalid email format." }];
+    errors.email = [{ message: 'Invalid email format.' }];
   }
 
   return {
     values, // (Optional) Used to pass current form values to submit event.
-    errors,
+    errors
   };
 };
 
@@ -161,15 +133,15 @@ const onFormSubmit = async (e: FormSubmitEvent) => {
     const res = await signup({
       username: e.values.username,
       password: e.values.password,
-      email: e.values.email,
+      email: e.values.email
     });
-    
-    if (typeof res !== "number") {
-      userStore.login(e.values.username)
-      await router.push({ name: "LoginForm" });
-      message.success("Register successful, you can login now.")
+
+    if (typeof res !== 'number') {
+      userStore.login(e.values.username);
+      await router.push({ name: 'LoginForm' });
+      message.success('Register successful, you can login now.');
     } else {
-      message.error("Register failed, Username or password is incorrect.")
+      message.error('Register failed, Username or password is incorrect.');
     }
   }
 };
@@ -221,4 +193,3 @@ const onFormSubmit = async (e: FormSubmitEvent) => {
   }
 }
 </style>
-
