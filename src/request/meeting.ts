@@ -112,10 +112,12 @@ export const startBot = async (meetingId: string) => {
   }
 };
 
-export const stopBot = async () => {
+export const stopBot = async (meetingId: string) => {
   const res = await requestWrapper(
     '/meeting/stop_bot',
-    {},
+    {
+      meetingId: meetingId
+    },
     {
       method: 'POST'
     },

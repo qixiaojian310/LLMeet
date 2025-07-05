@@ -58,7 +58,7 @@ def insert_meeting_minute(
                 conn.commit()
                 logger.info(
                     f"[DB] 更新会议记录路径成功: "
-                    f"meeting_id={meeting_id}, username={username}, user_id={user_id}"
+                    f"meeting_id={meeting_id}, username={username}, user_id={user_id}, minute_record_path={minute_record_path}"
                 )
                 return True
                 

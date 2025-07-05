@@ -308,11 +308,8 @@ const toggleAudio = () => {
 };
 
 const leaveMeeting = async () => {
-  room.disconnect();
+  await room.disconnect();
   meetingStore.clearMeetingInfo();
-  const res = await stopBot();
-  console.log(res);
-
   message.success('Meeting left successfully');
   router.push({ name: 'HomeView' });
 };
