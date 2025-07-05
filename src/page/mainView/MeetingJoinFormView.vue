@@ -53,7 +53,7 @@ import { faChampagneGlasses } from '@fortawesome/free-solid-svg-icons';
 import { router } from '@/router';
 import { useUserStore } from '@/stores/userStore';
 import { onMounted } from 'vue';
-import { getMeeting, getMeetingToken } from '@/request/meeting';
+import { getMeeting, getMeetingToken, joinMeeting } from '@/request/meeting';
 import { useMeetingStore } from '@/stores/meetingStore';
 import { message } from 'ant-design-vue';
 
@@ -89,21 +89,26 @@ const onFormSubmit = async ({ valid, values }: FormSubmitEvent) => {
       return;
     }
     const tokenRes = await getMeetingToken(values.meetingNumber, values.username);
-    if (typeof tokenRes !== 'number') {
-      meetingStore.setMeetingInfo({
-        meetingId: res.meeting.meetingId,
-        meetingToken: tokenRes.token,
-        meetingName: res.meeting.title,
-        description: res.meeting.description,
-        startTime: new Date(res.meeting.startTime).toISOString().slice(0, 19).replace('T', ' '),
-        endTime: new Date(res.meeting.endTime).toISOString().slice(0, 19).replace('T', ' '),
-        createTime: new Date(res.meeting.createdAt).toISOString().slice(0, 19).replace('T', ' ')
-      });
-      router.push('/meeting');
-      message.success('Meeting entered successfully');
-    } else {
+    if (typeof tokenRes === 'number') {
       message.error('Meeting token generation failed');
+      return;
     }
+    const joinRes = await joinMeeting(values.meetingNumber);
+    if (typeof joinRes === 'number') {
+      message.error('Meeting join failed');
+      return;
+    }
+    meetingStore.setMeetingInfo({
+      meetingId: res.meeting.meetingId,
+      meetingToken: tokenRes.token,
+      meetingName: res.meeting.title,
+      description: res.meeting.description,
+      startTime: new Date(res.meeting.startTime).toISOString().slice(0, 19).replace('T', ' '),
+      endTime: new Date(res.meeting.endTime).toISOString().slice(0, 19).replace('T', ' '),
+      createTime: new Date(res.meeting.createdAt).toISOString().slice(0, 19).replace('T', ' ')
+    });
+    router.push('/meeting');
+    message.success('Meeting entered successfully');
   }
 };
 

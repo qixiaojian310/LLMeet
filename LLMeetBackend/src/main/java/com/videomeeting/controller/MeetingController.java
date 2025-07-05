@@ -1,9 +1,6 @@
 package com.videomeeting.controller;
 
-import com.videomeeting.dto.MeetingCreateDto;
-import com.videomeeting.dto.MeetingDeleteDto;
-import com.videomeeting.dto.MeetingGetDto;
-import com.videomeeting.dto.MeetingListGetDto;
+import com.videomeeting.dto.*;
 import com.videomeeting.service.MeetingService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +26,11 @@ public class MeetingController {
     @PostMapping("/get")
     public ResponseEntity<?> getMeeting(@RequestBody @Valid MeetingGetDto meetingGetDto) {
         return meetingService.getMeetingById(meetingGetDto);
+    }
+
+    @PostMapping("/join")
+    public ResponseEntity<?> joinMeeting(@RequestBody @Valid MeetingJoinDto meetingJoinDto) {
+        return meetingService.joinMeeting(meetingJoinDto);
     }
 
     @GetMapping("/getAll")

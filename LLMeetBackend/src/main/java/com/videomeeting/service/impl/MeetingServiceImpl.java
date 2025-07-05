@@ -33,6 +33,28 @@ public class MeetingServiceImpl implements MeetingService {
     }
 
     @Override
+    public ResponseEntity<MeetingJoinResponse> joinMeeting(MeetingJoinDto meetingJoinDto) {
+        // 1. 获取当前用户
+        JwtUserContextUtil.UserHolder userHolder = JwtUserContextUtil.getCurrentUser();
+        Integer userId = userHolder.getUserId();
+        if (userId == null) {
+            // 无用户信息，直接返回失败
+            MeetingJoinResponse response = new MeetingJoinResponse();
+            response.setSuccess(false);
+            return ResponseEntity.ok(response);
+        }
+
+        // 2. 记录加入时间
+        OffsetDateTime joinTime = OffsetDateTime.now();
+        // 3. 调用 Mapper 加入会议
+        int inserted = meetingMapper.addUserToMeeting(userId, meetingJoinDto.getMeetingId(), joinTime);
+        // 4. 构造返回
+        MeetingJoinResponse response = new MeetingJoinResponse();
+        response.setSuccess(inserted > 0);
+        return ResponseEntity.ok(response);
+    }
+
+    @Override
     public ResponseEntity<MeetingCreateResponse> addMeeting(MeetingCreateDto meetingCreateDto){
         String status = "ready";
         System.out.println(status);
@@ -42,9 +64,6 @@ public class MeetingServiceImpl implements MeetingService {
             return null;
         }
         OffsetDateTime createTime = OffsetDateTime.now();
-        System.out.println(createTime);
-        System.out.println(meetingCreateDto.getStartTime());
-        System.out.println(meetingCreateDto.getEndTime());
         String meetingId = IdGeneratorUtil.generateCustomId();
         Meeting meeting = new Meeting(meetingId, meetingCreateDto.getTitle(), meetingCreateDto.getDescription(),
                 creatorId, createTime,status, meetingCreateDto.getStartTime(), meetingCreateDto.getEndTime());

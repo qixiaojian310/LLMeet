@@ -7,6 +7,27 @@ export interface MeetingInfo {
   endTime: string;
 }
 
+export const joinMeeting = async (meetingId: string) => {
+  const res = await requestWrapper(
+    `/meeting/join`,
+    {
+      meetingId
+    },
+    {
+      method: 'POST'
+    },
+    true,
+    undefined
+  );
+  if (typeof res !== 'number') {
+    const body = await res.json();
+    console.log('res', body);
+    return body;
+  } else {
+    return res;
+  }
+};
+
 export const deleteMeeting = async (meetingId: string) => {
   const res = await requestWrapper(
     '/meeting/delete',
