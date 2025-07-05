@@ -50,11 +50,10 @@ class VideoPathsRequest(BaseModel):
 # 录制会话管理器
 # -----------------------------
 class RecordingSession:
-    def __init__(self, participant_identity: str, session_id: str, meeting_id: str, username: str):
+    def __init__(self, participant_identity: str, session_id: str, meeting_id: str):
         self.participant_identity = participant_identity
         self.session_id = session_id
         self.meeting_id = meeting_id
-        self.username = username
         self.start_time = time.time()
         # 文件路径
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -95,7 +94,7 @@ class RecordingSession:
             logger.info(f"[Recording] 合并完成: {self.final_file}")
             self.final_files.append({
                 'meeting_id': self.meeting_id,
-                'username': self.username,
+                'username': self.participant_identity,
                 'path': str(self.final_file)
             })
         except Exception as e:
@@ -153,6 +152,7 @@ class RecordingSession:
 # Bot 主逻辑 + 自动停止
 # -----------------------------
 async def run_bot(room_name: str, bot_identity: str, username: str):
+    logger.info(f"[{room_name}][{username}] Bot 启动")
     sessions: Dict[str, RecordingSession] = {}
     recording_sessions[room_name] = sessions
     # 生成 token
@@ -187,7 +187,7 @@ async def run_bot(room_name: str, bot_identity: str, username: str):
     def on_track(track, pub, p):
         sid = f"{p.identity}_{p.sid}"
         if sid not in sessions:
-            sessions[sid] = RecordingSession(p.identity, sid, room_name, username)
+            sessions[sid] = RecordingSession(p.identity, sid, room_name)
         sess = sessions[sid]
         sess.is_recording = True
         if track.kind == livekit_rtc.TrackKind.KIND_VIDEO:
@@ -273,6 +273,7 @@ router = APIRouter(prefix="/meeting", tags=["meeting"])
 async def start_bot(req: BotRequest, user_id: int = Depends(get_current_user)):
     room_name = req.meetingId
     if room_name in rooms and rooms[room_name].connection_state == livekit_rtc.ConnectionState.CONN_CONNECTED:
+        logger.info(f"[{room_name}] Bot 已连接，无需重复启动")
         return {"status": "already connected", "room": room_name}
     bot_tasks[room_name] = asyncio.create_task(run_bot(room_name, f"bot-{room_name}", str(user_id)))
     return {"status": "connecting", "room": room_name}
