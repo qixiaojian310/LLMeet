@@ -216,3 +216,25 @@ export const getVideoPaths = async (meetingId: string) => {
     return res;
   }
 };
+
+export const convertContent = async (meetingId: string) => {
+  const res = await requestWrapper(
+    `/meeting/convert_content`,
+    {
+      meetingId
+    },
+    {
+      method: 'POST'
+    },
+    true,
+    undefined,
+    import.meta.env.VITE_RECORD_BASE_URL
+  );
+  if (typeof res !== 'number') {
+    const body = await res.json();
+    console.log('res', body);
+    return body;
+  } else {
+    return res;
+  }
+};

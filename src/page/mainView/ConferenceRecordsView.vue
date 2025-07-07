@@ -38,9 +38,20 @@
               :label="participant.toString()"
             />
           </AvatarGroup>
-          <Button severity="info" class="toolbar-button" @click="redirect(conference.meetingId)">
-            <FontAwesomeIcon :icon="faPlay" />
-            Play
+          <Button
+            :disabled="conference.meetingId === recordStore.meetingId && recordStore.isRecording"
+            severity="info"
+            class="toolbar-button"
+            @click="redirect(conference.meetingId)"
+          >
+            <span v-if="conference.meetingId === recordStore.meetingId && recordStore.isRecording">
+              <FontAwesomeIcon :icon="faSync" spin />
+              Stop
+            </span>
+            <span v-else>
+              <FontAwesomeIcon :icon="faPlay" />
+              Play
+            </span>
           </Button>
         </div>
       </template>
@@ -50,13 +61,21 @@
 
 <script setup lang="ts">
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faPlay, faVideo, faHourglassEnd, faClock } from '@fortawesome/free-solid-svg-icons';
+import {
+  faPlay,
+  faVideo,
+  faHourglassEnd,
+  faClock,
+  faSync
+} from '@fortawesome/free-solid-svg-icons';
 import { Card, Avatar, AvatarGroup, Button, Tag } from 'primevue';
 import { ref } from 'vue';
 import { router } from '@/router';
 import { onMounted } from 'vue';
 import { getAllMeetingListByUserId } from '@/request/meeting';
+import { useRecordStore } from '@/stores/recordStore';
 
+const recordStore = useRecordStore();
 interface Conference {
   meetingId: string;
   title: string;

@@ -113,9 +113,11 @@ import {
 } from '@/request/meeting';
 import { useUserStore } from '@/stores/userStore';
 import { useMeetingStore } from '@/stores/meetingStore';
+import { useRecordStore } from '@/stores/recordStore';
 
 const userStore = useUserStore();
 const meetingStore = useMeetingStore();
+const recordStore = useRecordStore();
 const initialValues = reactive({
   username: '',
   meetingTitle: '',
@@ -182,6 +184,7 @@ const onFormSubmit = async ({ valid, values }: FormSubmitEvent) => {
           endTime: new Date(sendRequest.endTime).toISOString().slice(0, 19).replace('T', ' '),
           createTime: new Date(res.createTime).toISOString().slice(0, 19).replace('T', ' ')
         });
+        recordStore.recordVideo(meetingId);
         router.push({ name: 'MeetingView' });
       } else {
         message.error('Meeting token generation failed');

@@ -20,7 +20,11 @@ import { faFileVideo, faHouse, faSquarePlus } from '@fortawesome/free-solid-svg-
 import { ref } from 'vue';
 import { RouterView } from 'vue-router';
 import { router } from '@/router';
+import { useWSService } from '@/utils/useWSService';
+import { message } from 'ant-design-vue';
+import { useRecordStore } from '@/stores/recordStore';
 
+const recordStore = useRecordStore();
 const navigationItems = ref([
   {
     title: 'Home',
@@ -38,6 +42,13 @@ const navigationItems = ref([
     path: 'conference-records'
   }
 ]);
+
+useWSService(event => {
+  console.log('收到 merge_complete：', event);
+  message.success('merge_complete!!');
+  recordStore.stopRecord();
+  // 你还可以触发通知、状态更新等
+});
 </script>
 
 <style scoped lang="scss">

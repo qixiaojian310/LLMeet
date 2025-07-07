@@ -56,9 +56,11 @@ import { onMounted } from 'vue';
 import { getMeeting, getMeetingToken, joinMeeting } from '@/request/meeting';
 import { useMeetingStore } from '@/stores/meetingStore';
 import { message } from 'ant-design-vue';
+import { useRecordStore } from '@/stores/recordStore';
 
 const userStore = useUserStore();
 const meetingStore = useMeetingStore();
+const recordStore = useRecordStore();
 const initialValues = reactive({
   username: userStore.username,
   meetingNumber: '',
@@ -107,6 +109,7 @@ const onFormSubmit = async ({ valid, values }: FormSubmitEvent) => {
       endTime: new Date(res.meeting.endTime).toISOString().slice(0, 19).replace('T', ' '),
       createTime: new Date(res.meeting.createdAt).toISOString().slice(0, 19).replace('T', ' ')
     });
+    recordStore.recordVideo(res.meeting.meetingId);
     router.push('/meeting');
     message.success('Meeting entered successfully');
   }

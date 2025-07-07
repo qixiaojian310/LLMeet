@@ -1,4 +1,5 @@
-from typing import Any, Dict, List
+import json
+from typing import Any, Dict, List, Optional
 from .database_connector import get_connection, logger
 
 def insert_meeting_minute(
@@ -89,3 +90,25 @@ def fetch_meeting_minutes(meeting_id: str) -> List[Dict[str, Any]]:
     except Exception as e:
         logger.error(f"fetch_meeting_minutes error: {e}")
         return []
+    
+def get_meeting_minutes(meeting_id: str) -> Optional[Dict[str, Any]]:
+    """
+    根据 meeting_id 从 meeting 表中查询合并后的会议纪要（JSON），
+    并返回为 Python 对象（dict）。
+    """
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "SELECT minutes FROM meeting WHERE meeting_id = %s LIMIT 1",
+                    (meeting_id,)
+                )
+                row = cursor.fetchone()
+        if not row or not row[0]:
+            return None
+        # 数据库中存储的是 JSON 字符串，反序列化后返回 dict
+        print(row[0])
+        return json.loads(row[0])
+    except Exception as e:
+        logger.error(f"get_meeting_minutes error: {e}")
+        return None

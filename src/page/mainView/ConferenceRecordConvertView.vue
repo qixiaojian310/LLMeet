@@ -35,9 +35,33 @@
       </div>
     </div>
     <div class="video-control">
-      <button @click="playAll">▶️ Play All</button>
-      <button @click="pauseAll">⏸️ Pause All</button>
-      <input type="range" min="0" max="100" step="0.1" v-model="globalProgress" @input="seekAll" />
+      <button class="control-btn" @click="togglePlay">
+        <FontAwesomeIcon :icon="isPlaying ? faPause : faPlay" />
+      </button>
+      <button class="control-btn" @click="seekRelative(-5)">
+        <FontAwesomeIcon :icon="faBackward" />
+      </button>
+      <span class="time-display">{{ formatTime(currentTime) }} / {{ formatTime(totalTime) }}</span>
+      <div class="progress-bar" @click="onProgressClick">
+        <div class="progress-filled" :style="{ width: globalProgress + '%' }"></div>
+      </div>
+      <button class="control-btn" @click="seekRelative(5)">
+        <FontAwesomeIcon :icon="faForward" />
+      </button>
+      <div class="volume-control">
+        <FontAwesomeIcon :icon="faVolumeUp" />
+        <input
+          type="range"
+          min="0"
+          max="1"
+          step="0.01"
+          v-model.number="volume"
+          @input="onVolumeChange"
+        />
+      </div>
+      <button class="control-btn" @click="toggleFullScreen">
+        <FontAwesomeIcon :icon="isFullScreen ? faCompress : faExpand" />
+      </button>
     </div>
     <div class="video-chapter" :class="{ visible: showChapter }">
       <p style="font-size: 20px; color: var(--primary-text-color)">Chapter</p>
@@ -69,19 +93,7 @@
       </div>
     </div>
     <div class="video-convert" :class="{ visible: showConvert }">
-      <Editor
-        v-model="convertResult"
-        class="video-convert-editor"
-        editor-style="height: calc(100% - 43.35px)"
-      >
-        <template #toolbar>
-          <span class="ql-formats">
-            <button v-tooltip.bottom="'Bold'" class="ql-bold" />
-            <button v-tooltip.bottom="'Italic'" class="ql-italic" />
-            <button v-tooltip.bottom="'Underline'" class="ql-underline" />
-          </span>
-        </template>
-      </Editor>
+      <TranscriptionViewer v-if="convertResult" :data="convertResult" />
     </div>
   </div>
 </template>
@@ -89,14 +101,23 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { Card } from 'primevue';
-import Editor from 'primevue/editor';
-import { faVideo } from '@fortawesome/free-solid-svg-icons';
+import {
+  faBackward,
+  faCompress,
+  faExpand,
+  faForward,
+  faPause,
+  faPlay,
+  faVideo,
+  faVolumeUp
+} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { useRoute } from 'vue-router';
 import videojs from 'video.js';
 import type Player from 'video.js/dist/types/player';
 import 'video.js/dist/video-js.css';
-import { getVideoPaths } from '@/request/meeting'; // ✅ 不再用 getVideoBlob
+import { convertContent, getVideoPaths } from '@/request/meeting'; // ✅ 不再用 getVideoBlob
+import TranscriptionViewer from '@/coreComponents/TranscriptionViewer.vue';
 
 // 获取路由参数
 const route = useRoute();
@@ -114,6 +135,13 @@ const videos = ref<VideoItem[]>([]);
 const players: Player[] = [];
 const showConvert = ref(false);
 const showChapter = ref(false);
+const isPlaying = ref(false);
+const currentTime = ref(0);
+const totalTime = ref(0);
+const globalProgress = ref(0);
+const volume = ref(1);
+const isFullScreen = ref(false);
+const containerRef = ref<HTMLElement | null>(null);
 // 示例章节
 const conferenceChapters = ref([
   {
@@ -133,7 +161,7 @@ const conferenceChapters = ref([
   }
 ]);
 
-const convertResult = ref('...');
+const convertResult = ref();
 
 async function loadVideos() {
   if (!meetingId) {
@@ -152,35 +180,65 @@ async function loadVideos() {
     console.error('加载视频失败：', err);
   }
 }
-const globalProgress = ref(0); // 0-100%
 
-function getShortestDuration(): number {
-  return players.reduce((min, p) => {
-    const d = p.duration?.() || 0;
-    return d > 0 && d < min ? d : min;
-  }, Infinity);
+function updateProgress() {
+  const times = players.map(p => p.currentTime());
+  currentTime.value = Math.min(Number(...times));
+  globalProgress.value = (currentTime.value / totalTime.value) * 100;
 }
 
-function playAll() {
-  players.forEach(player => {
-    if (player.readyState() > 0) {
-      player.play();
-    }
-  });
+function togglePlay() {
+  if (isPlaying.value) {
+    players.forEach(player => {
+      player.pause();
+    });
+  } else {
+    players.forEach(player => {
+      if (player.readyState() > 0) {
+        player.play();
+      }
+    });
+  }
+  isPlaying.value = !isPlaying.value;
 }
 
-function pauseAll() {
-  players.forEach(player => {
-    player.pause();
-  });
+function seekRelative(sec: number) {
+  const newTime = Math.max(0, Math.min(totalTime.value, currentTime.value + sec));
+  players.forEach(p => p.currentTime(newTime));
+  updateProgress();
 }
 
-function seekAll() {
-  const shortestDuration = getShortestDuration();
-  const time = (globalProgress.value / 100) * shortestDuration;
-  players.forEach(player => {
-    player.currentTime(time);
-  });
+function onProgressClick(e: MouseEvent) {
+  const bar = e.currentTarget as HTMLElement;
+  const rect = bar.getBoundingClientRect();
+  const percent = (e.clientX - rect.left) / rect.width;
+  const newTime = percent * totalTime.value;
+  players.forEach(p => p.currentTime(newTime));
+  updateProgress();
+}
+
+function onVolumeChange() {
+  players.forEach(p => p.volume(volume.value));
+}
+
+function formatTime(sec: number) {
+  const m = Math.floor(sec / 60)
+    .toString()
+    .padStart(2, '0');
+  const s = Math.floor(sec % 60)
+    .toString()
+    .padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+function toggleFullScreen() {
+  if (!containerRef.value) return;
+  if (!isFullScreen.value) {
+    containerRef.value.requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
+  isFullScreen.value = !isFullScreen.value;
 }
 
 function bindProgressSync() {
@@ -191,13 +249,20 @@ function bindProgressSync() {
 
   if (shortestPlayer) {
     shortestPlayer.on('timeupdate', () => {
-      globalProgress.value = (shortestPlayer.currentTime() / shortestPlayer.duration()) * 100;
+      let currentTimeTemp = shortestPlayer.currentTime();
+      let totalTimeTemp = shortestPlayer.duration();
+      if (!currentTimeTemp || !totalTimeTemp) return;
+      currentTime.value = currentTimeTemp;
+      totalTime.value = totalTimeTemp;
+      globalProgress.value = (currentTime.value / totalTime.value) * 100;
     });
   }
 }
 
 onMounted(async () => {
   await loadVideos();
+  const content = await convertContent(meetingId);
+  convertResult.value = content;
   await nextTick();
   const videoEls = document.querySelectorAll<HTMLVideoElement>('video.my-video');
   videoEls.forEach((el, index) => {
@@ -234,7 +299,47 @@ onBeforeUnmount(() => {
   .video-control {
     display: flex;
     align-items: center;
-    justify-content: center;
+    padding: 0.5rem;
+    background: rgba(0, 0, 0, 0.6);
+    gap: 0.75rem;
+    border-radius: 0.5rem;
+  }
+  .control-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.25rem;
+    color: #fff;
+    padding: 0.25rem;
+    transition: transform 0.2s;
+  }
+  .control-btn:hover {
+    transform: scale(1.1);
+  }
+  .time-display {
+    color: #fff;
+    font-size: 0.875rem;
+  }
+  .progress-bar {
+    flex: 1;
+    height: 0.5rem;
+    background: #444;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    position: relative;
+  }
+  .progress-filled {
+    height: 100%;
+    background: #1db954;
+    border-radius: 0.25rem 0 0 0.25rem;
+  }
+  .volume-control {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  .volume-control input {
+    width: 4rem;
   }
   .video-panel {
     width: 100%;
@@ -246,9 +351,14 @@ onBeforeUnmount(() => {
       flex: 1;
       width: 0;
       overflow-y: auto;
+      width: 100%;
+      height: 100%;
+      display: flex;
 
       .video-item {
-        margin-bottom: 10px;
+        padding: 10px;
+        width: 50%;
+        height: fit-content;
         .video-content {
           position: relative;
           .video-user {
@@ -265,7 +375,7 @@ onBeforeUnmount(() => {
             border-radius: 0.5rem;
             z-index: 2;
           }
-          width: 40%;
+          width: 100%;
           height: min-content;
           background: var(--primary-background-color);
         }

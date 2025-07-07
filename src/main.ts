@@ -15,6 +15,9 @@ if (process.env.NODE_ENV === 'development') {
   devtools.connect('http://localhost', 1420);
 }
 import Tooltip from 'primevue/tooltip';
+import { wsService } from './utils/wsService';
+
+wsService.init();
 
 const app = createApp(App);
 app.directive('tooltip', Tooltip);
