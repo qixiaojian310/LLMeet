@@ -1,38 +1,24 @@
 <template>
   <div class="main-panel">
-    <div
-      class="main-panel-header"
-      :style="{ background: `url(${bgURL}) no-repeat center center`, backgroundSize: '100% auto' }"
-    >
-      <div class="main-panel-header-next-meet">
-        <p>Upcoming Meeting at {{ meetingTime }}</p>
-      </div>
-      <div class="main-panel-header-time">
-        <p class="time">
-          {{ nowTime.time }}
-        </p>
-        <p class="date">
-          {{ nowTime.date }}
-        </p>
-      </div>
-    </div>
     <div class="meeting-tool">
       <Card v-for="tool in tools" :key="tool.title" @click="redirect(tool.path)">
         <template #header>
-          <div
-            :style="{
-              background: `url(${tool.photo}) no-repeat center center`,
-              backgroundSize: '100% auto'
-            }"
-            alt="Meeting Photo"
-            class="meeting-photo"
-          />
+          <div class="meeting-title">
+            <div class="icon">
+              <FontAwesomeIcon :icon="tool.icon" size="2x" />
+            </div>
+            <div
+              :style="{
+                background: `url(${tool.photo}) no-repeat center center`,
+                backgroundSize: '100% auto'
+              }"
+              alt="Meeting Photo"
+              class="meeting-photo"
+            />
+          </div>
         </template>
         <template #content>
           <div class="content">
-            <div class="icon">
-              <FontAwesomeIcon :icon="tool.icon" />
-            </div>
             <div class="text">
               <p class="title">
                 {{ tool.title }}
@@ -44,6 +30,16 @@
           </div>
         </template>
       </Card>
+    </div>
+    <div class="main-panel-header">
+      <div class="main-panel-header-time">
+        <p class="time">
+          {{ nowTime.time }}
+        </p>
+        <p class="date">
+          {{ nowTime.date }}
+        </p>
+      </div>
     </div>
   </div>
 </template>
@@ -133,66 +129,48 @@ $scrollbar-width: 4px;
   width: 100%;
   height: 100%;
   display: flex;
-  flex-direction: column;
   gap: 20px;
 
   .main-panel-header {
-    width: 100%;
-    height: 200px;
+    flex: 1;
+    width: 0%;
     display: flex;
     border-radius: 10px;
     position: relative;
-
-    .main-panel-header-next-meet {
-      font-size: 5px;
-      font-weight: 300;
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      border-radius: 5px;
-      background: #00000022;
-      padding: 5px;
-
-      p {
-        padding: 0px;
-        font-size: 10px;
-        line-height: 10px;
-        margin: 0;
-      }
-    }
-
+    flex-direction: column;
     .main-panel-header-time {
-      font-size: 5px;
-      font-weight: 300;
-      position: absolute;
-      bottom: 20px;
-      left: 20px;
-
+      display: flex;
+      flex-direction: column;
+      height: fit-content;
+      width: 100%;
       p {
         margin: 0 0 5px 0;
       }
 
       .time {
         text-align: left;
-        font-size: 50px;
+        font-size: 3rem;
         font-weight: 600;
+        line-height: 1.2;
       }
 
       .date {
-        font-size: 15px;
+        font-size: 1.2rem;
         text-align: left;
       }
     }
   }
 
   .meeting-tool {
-    flex: 1;
-    height: 0;
-    width: 100%;
+    flex: 0;
+    height: 100%;
+    min-width: 400px;
     overflow: auto;
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); // 2列
+    grid-auto-rows: minmax(150px, auto); // 自适应行高
     gap: 20px;
+    padding: 10px;
 
     /* 整个滚动条 */
     &::-webkit-scrollbar {
@@ -218,28 +196,31 @@ $scrollbar-width: 4px;
     &::-webkit-scrollbar-thumb:hover {
       background: #555;
     }
-
+    .p-card:nth-child(-n + 2) {
+      align-self: end;
+    }
     .p-card {
       border-radius: 10px;
-      width: 230px;
-      height: 200px;
-
-      .meeting-photo {
-        width: 100%;
-        height: 100px;
-        border-radius: 10px 10px 0 0;
+      width: 100%;
+      height: 120px;
+      .meeting-title {
+        display: flex;
+        .meeting-photo {
+          flex: 1;
+          height: 50px;
+          border-radius: 0px 10px 0 0;
+        }
+        .icon svg {
+          background: #ffffff22;
+          padding: 10px;
+          border-radius: 5px;
+        }
       }
 
       .content {
         display: flex;
         justify-content: space-between;
         align-items: center;
-
-        .icon svg {
-          background: #ffffff22;
-          padding: 10px;
-          border-radius: 5px;
-        }
 
         .text {
           p {
