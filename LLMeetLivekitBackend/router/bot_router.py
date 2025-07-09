@@ -46,22 +46,22 @@ class VideoPathsRequest(BaseModel):
 # -----------------------------
 # API 端点
 # -----------------------------
-router = APIRouter(prefix="/bot", tags=["bot"])
+router = APIRouter(prefix="/meeting", tags=["meeting"])
 
 @router.post("/start_bot")
-async def start_bot(req: BotRequest, user_id: int = Depends(get_current_user)):
+async def start_bot(req: BotRequest, username: str = Depends(get_current_user)):
     room_name = req.meeting_id
     if room_name in rooms and rooms[room_name].connection_state == livekit_rtc.ConnectionState.CONN_CONNECTED:
         logger.info(f"[{room_name}] Bot 已连接，无需重复启动")
         return {"status": "already connected", "room": room_name}
-    bot_tasks[room_name] = asyncio.create_task(run_bot(room_name, f"bot-{room_name}", str(user_id)))
+    bot_tasks[room_name] = asyncio.create_task(run_bot(room_name, f"bot-{room_name}", str(username)))
     return {"status": "connecting", "room": room_name}
 
 @router.post("/token")
-async def get_token(request: MeetingRequest, user_id: int = Depends(get_current_user)):
+async def get_token(request: MeetingRequest, username: str = Depends(get_current_user)):
     token = (
         livekit_api.AccessToken()
-        .with_identity(str(user_id))
+        .with_identity(str(username))
         .with_name(request.username)
         .with_grants(livekit_api.VideoGrants(room_join=True, room=request.meeting_id))
         .to_jwt()
@@ -70,6 +70,7 @@ async def get_token(request: MeetingRequest, user_id: int = Depends(get_current_
 
 @router.get("/video")
 async def get_video(request: Request, path: str):
+    print(path)
     fp = Path(path)
     if not fp.exists() or not fp.is_file():
         raise HTTPException(status_code=404, detail="File not found")
@@ -134,15 +135,16 @@ async def status(meeting_id: Optional[str] = Query(None)):
     return {"active_rooms": list(rooms.keys())}
 
 @router.post("/recordingPath", response_model=List[Dict[str, str]])
-async def recording_paths(req: VideoPathsRequest, user_id: int = Depends(get_current_user)):
+async def recording_paths(req: VideoPathsRequest, username: str = Depends(get_current_user)):
+    print(req.meeting_id)
     try:
         recs = fetch_meeting_minutes(req.meeting_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    return [{"path": r["minutes_path"], "user_id": r["username"]} for r in recs]
+    return [{"path": r["minutes_path"], "username": r["username"]} for r in recs]
 
 @router.post("/convert_content")
-async def convert_content(req: ConvertContentRequest, user_id: int = Depends(get_current_user)):
+async def convert_content(req: ConvertContentRequest, username: str = Depends(get_current_user)):
     try:
         content = get_meeting_minutes(req.meeting_id)
     except Exception as e:

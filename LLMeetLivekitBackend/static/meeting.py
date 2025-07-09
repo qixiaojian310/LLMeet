@@ -1,56 +1,90 @@
+from datetime import datetime
 import json
 from typing import Any, Dict, List, Optional
 from .database_connector import get_connection, logger
 
-def add_meeting(meeting):
-    conn = get_connection()
-    cur = conn.cursor()
-    sql = '''
-        INSERT INTO meeting (meeting_id, title, description, creator_id, created_at, status, start_time, end_time)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    '''
-    cur.execute(sql, (meeting.meeting_id, meeting.title, meeting.description,
-                      meeting.creator_id, meeting.created_at, meeting.status,
-                      meeting.start_time, meeting.end_time))
-    conn.commit()
-    return cur.rowcount
+def add_meeting(meeting) -> int:
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                sql = '''
+                    INSERT INTO meeting (meeting_id, title, description, creator_id, created_at, status, start_time, end_time)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                '''
+                cur.execute(sql, (
+                    meeting.meeting_id,
+                    meeting.title,
+                    meeting.description,
+                    meeting.creator_id,
+                    meeting.created_at,
+                    meeting.status,
+                    meeting.start_time,
+                    meeting.end_time
+                ))
+            conn.commit()
+        return 1
+    except Exception as e:
+        logger.error(f"add_meeting error: {e}")
+        return 0
 
-def add_user_to_meeting(user_id, meeting_id, joined_at):
-    conn = get_connection()
-    cur = conn.cursor()
-    cur.execute("INSERT INTO user_meeting (user_id, meeting_id, joined_at) VALUES (?, ?, ?)",
-                (user_id, meeting_id, joined_at))
-    conn.commit()
-    return cur.rowcount
 
-def delete_meeting(meeting_id):
-    conn = get_connection()
-    cur = conn.cursor()
-    cur.execute("DELETE FROM meeting WHERE meeting_id = ?", (meeting_id,))
-    conn.commit()
-    return cur.rowcount
+def add_user_to_meeting(username: str, meeting_id: str, joined_at: datetime) -> int:
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "INSERT INTO user_meeting (username, meeting_id, joined_at) VALUES (%s, %s, %s)",
+                    (username, meeting_id, joined_at)
+                )
+            conn.commit()
+        return 1
+    except Exception as e:
+        logger.error(f"add_user_to_meeting error: {e}")
+        return 0
 
-def find_meeting_by_id(meeting_id):
-    conn = get_connection()
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM meeting WHERE meeting_id = ?", (meeting_id,))
-    row = cur.fetchone()
-    if row:
-        keys = [column[0] for column in cur.description]
-        return dict(zip(keys, row))
-    return None
 
-def find_meetings_by_user_id(user_id):
-    conn = get_connection()
-    cur = conn.cursor()
-    cur.execute('''
-        SELECT m.* FROM meeting m
-        JOIN user_meeting um ON m.meeting_id = um.meeting_id
-        WHERE um.user_id = ?
-    ''', (user_id,))
-    rows = cur.fetchall()
-    keys = [column[0] for column in cur.description]
-    return [dict(zip(keys, row)) for row in rows]
+def delete_meeting(meeting_id: str) -> int:
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("DELETE FROM meeting WHERE meeting_id = %s", (meeting_id,))
+            conn.commit()
+        return 1
+    except Exception as e:
+        logger.error(f"delete_meeting error: {e}")
+        return 0
+
+
+def find_meeting_by_id(meeting_id: str) -> Optional[Dict[str, Any]]:
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT * FROM meeting WHERE meeting_id = %s", (meeting_id,))
+                row = cur.fetchone()
+                if not row:
+                    return None
+                keys = [desc[0] for desc in cur.description]
+                return dict(zip(keys, row))
+    except Exception as e:
+        logger.error(f"find_meeting_by_id error: {e}")
+        return None
+
+
+def find_meetings_by_username(username: str) -> List[Dict[str, Any]]:
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute('''
+                    SELECT m.* FROM meeting m
+                    JOIN user_meeting um ON m.meeting_id = um.meeting_id
+                    WHERE um.username = %s
+                ''', (username,))
+                rows = cur.fetchall()
+                keys = [desc[0] for desc in cur.description]
+                return [dict(zip(keys, row)) for row in rows]
+    except Exception as e:
+        logger.error(f"find_meetings_by_username error: {e}")   
+        return []
 
 def insert_meeting_minute(
     meeting_id: str,
@@ -68,32 +102,16 @@ def insert_meeting_minute(
     try:
         with get_connection() as conn:
             with conn.cursor(dictionary=True) as cursor:
-                # 1. 根据 username 查询 user_id
-                cursor.execute(
-                    """
-                    SELECT * FROM user 
-                    WHERE username = %s
-                    """,
-                    (username,)
-                )
-                user = cursor.fetchone()
-                
-                if not user:
-                    logger.error(f"[DB] 用户名不存在: {username}")
-                    return False
-                
-                user_id = user['user_id']
-                
                 # 2. 检查用户是否有权限访问该会议
                 cursor.execute(
                     """
                     SELECT 1 FROM user_meeting 
-                    WHERE meeting_id = %s AND user_id = %s
+                    WHERE meeting_id = %s AND username = %s
                     """,
-                    (meeting_id, user_id)
+                    (meeting_id, username)
                 )
                 if not cursor.fetchone():
-                    logger.error(f"[DB] 用户 {username}(id:{user_id}) 无权限访问会议 {meeting_id}")
+                    logger.error(f"[DB] 用户 {username}(username:{username}) 无权限访问会议 {meeting_id}")
                     return False
                 
                 # 3. 更新user_meeting表中的记录路径
@@ -101,15 +119,15 @@ def insert_meeting_minute(
                     """
                     UPDATE user_meeting 
                     SET minutes_path = %s 
-                    WHERE meeting_id = %s AND user_id = %s
+                    WHERE meeting_id = %s AND username = %s
                     """,
-                    (minute_record_path, meeting_id, user_id)
+                    (minute_record_path, meeting_id, username)
                 )
                 
                 conn.commit()
                 logger.info(
                     f"[DB] 更新会议记录路径成功: "
-                    f"meeting_id={meeting_id}, username={username}, user_id={user_id}, minute_record_path={minute_record_path}"
+                    f"meeting_id={meeting_id}, username={username}, username={username}, minute_record_path={minute_record_path}"
                 )
                 return True
                 
@@ -131,7 +149,7 @@ def fetch_meeting_minutes(meeting_id: str) -> List[Dict[str, Any]]:
                 sql = (
                     "SELECT um.meeting_id, u.username, um.minutes_path "
                     "FROM user_meeting um "
-                    "JOIN user u ON um.user_id = u.user_id "
+                    "JOIN user u ON um.username = u.username "
                     "WHERE um.meeting_id = %s"
                 )
                 cursor.execute(sql, (meeting_id,))

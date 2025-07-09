@@ -23,7 +23,7 @@ export const requestWrapper = async (
   },
   useAuth = true,
   contentType: string = 'application/json',
-  baseURL: string = import.meta.env.VITE_MAIN_BACKEND_URL
+  baseURL: string = `http://${import.meta.env.VITE_BACKEND_URL}:${import.meta.env.VITE_BACKEND_PORT}`
 ): Promise<number | Response> => {
   const { method, signal } = options ?? {};
 

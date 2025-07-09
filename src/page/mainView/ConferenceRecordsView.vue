@@ -74,7 +74,7 @@ import { Card, Avatar, AvatarGroup, Button, Tag } from 'primevue';
 import { ref } from 'vue';
 import { router } from '@/router';
 import { onMounted } from 'vue';
-import { getAllMeetingListByUserId } from '@/request/meeting';
+import { getAllMeetingListByUsername } from '@/request/meeting';
 import { useRecordStore } from '@/stores/recordStore';
 
 const recordStore = useRecordStore();
@@ -85,7 +85,7 @@ interface Conference {
   start_time: string;
   end_time: string;
   endedAt: string;
-  createdAt: string;
+  created_at: string;
   status: string;
   participants?: number[];
 }
@@ -130,7 +130,7 @@ const redirect = (meeting_id: string) => {
 };
 
 onMounted(async () => {
-  const res = await getAllMeetingListByUserId();
+  const res = await getAllMeetingListByUsername();
   if (typeof res !== 'number' && res.meetings) {
     conferences.value = res.meetings.map((meeting: any) => ({
       ...meeting,

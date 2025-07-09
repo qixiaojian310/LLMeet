@@ -5,7 +5,7 @@
         <div v-for="video in videos" class="video-item" :key="video.path">
           <div class="video-content">
             <p class="video-user">
-              {{ video.user_id }}
+              {{ video.username }}
             </p>
             <video class="video-js vjs-default-skin my-video" controls />
           </div>
@@ -126,7 +126,7 @@ const meeting_id = (route.params.meeting_id as string) || '';
 // 视频数据结构
 interface VideoRecord {
   path: string;
-  user_id: string;
+  username: string;
 }
 interface VideoItem extends VideoRecord {
   url: string;
@@ -170,11 +170,11 @@ async function loadVideos() {
   }
   try {
     const records: VideoRecord[] = await getVideoPaths(meeting_id);
+    console.log(records);
+
     for (const rec of records) {
-      const url = `${
-        import.meta.env.VITE_RECORD_BASE_URL
-      }/meeting/video?path=${encodeURIComponent(rec.path)}`; // ✅ 使用流接口
-      videos.value.push({ path: rec.path, user_id: rec.user_id, url });
+      const url = `http://${import.meta.env.VITE_BACKEND_URL}:${import.meta.env.VITE_BACKEND_PORT}/meeting/video?path=${encodeURIComponent(rec.path)}`; // ✅ 使用流接口
+      videos.value.push({ path: rec.path, username: rec.username, url });
     }
   } catch (err) {
     console.error('加载视频失败：', err);
@@ -296,6 +296,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 10px;
+
   .video-control {
     display: flex;
     align-items: center;
@@ -304,6 +305,7 @@ onBeforeUnmount(() => {
     gap: 0.75rem;
     border-radius: 0.5rem;
   }
+
   .control-btn {
     background: none;
     border: none;
@@ -313,13 +315,16 @@ onBeforeUnmount(() => {
     padding: 0.25rem;
     transition: transform 0.2s;
   }
+
   .control-btn:hover {
     transform: scale(1.1);
   }
+
   .time-display {
     color: #fff;
     font-size: 0.875rem;
   }
+
   .progress-bar {
     flex: 1;
     height: 0.5rem;
@@ -328,19 +333,23 @@ onBeforeUnmount(() => {
     cursor: pointer;
     position: relative;
   }
+
   .progress-filled {
     height: 100%;
     background: #1db954;
     border-radius: 0.25rem 0 0 0.25rem;
   }
+
   .volume-control {
     display: flex;
     align-items: center;
     gap: 0.25rem;
   }
+
   .volume-control input {
     width: 4rem;
   }
+
   .video-panel {
     width: 100%;
     height: 100%;
@@ -359,8 +368,10 @@ onBeforeUnmount(() => {
         padding: 10px;
         width: 50%;
         height: fit-content;
+
         .video-content {
           position: relative;
+
           .video-user {
             font-size: 0.85rem;
             line-height: 0.85rem;
@@ -375,6 +386,7 @@ onBeforeUnmount(() => {
             border-radius: 0.5rem;
             z-index: 2;
           }
+
           width: 100%;
           height: min-content;
           background: var(--primary-background-color);
@@ -419,6 +431,7 @@ onBeforeUnmount(() => {
     display: flex;
     flex-direction: column;
     z-index: 3;
+
     &.visible {
       transform: translateX(0%);
       opacity: 1;
@@ -466,6 +479,7 @@ onBeforeUnmount(() => {
     opacity: 0;
     transition: all 0.4s ease;
     z-index: 3;
+
     &.visible {
       transform: translateX(0%);
       opacity: 1;

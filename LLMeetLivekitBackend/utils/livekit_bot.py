@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Dict, List
 import httpx
 
-from LLMeetLivekitBackend.static.meeting import insert_meeting_minute
+from static.meeting import insert_meeting_minute
 from utils.record_notificator import record_notificator
 from livekit import api as livekit_api, rtc as livekit_rtc
 

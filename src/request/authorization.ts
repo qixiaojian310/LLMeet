@@ -25,7 +25,7 @@ interface ConvertedUserInfo {
 
 export const signin = async (userInfo: BasicUserInfo) => {
   const res = await requestWrapper(
-    '/api/auth/login',
+    '/auth/login',
     userInfo,
     {
       method: 'POST'
@@ -50,7 +50,7 @@ export const signin = async (userInfo: BasicUserInfo) => {
 
 export const signup = async (userInfo: RegisterUserInfo) => {
   const res = await requestWrapper(
-    '/api/auth/register',
+    '/auth/register',
     userInfo,
     {
       method: 'POST'

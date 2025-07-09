@@ -107,7 +107,7 @@ const onFormSubmit = async ({ valid, values }: FormSubmitEvent) => {
       description: res.meeting.description,
       start_time: new Date(res.meeting.start_time).toISOString().slice(0, 19).replace('T', ' '),
       end_time: new Date(res.meeting.end_time).toISOString().slice(0, 19).replace('T', ' '),
-      create_time: new Date(res.meeting.createdAt).toISOString().slice(0, 19).replace('T', ' ')
+      create_time: new Date(res.meeting.created_at).toISOString().slice(0, 19).replace('T', ' ')
     });
     recordStore.recordVideo(res.meeting.meeting_id);
     router.push('/meeting');

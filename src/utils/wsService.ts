@@ -28,7 +28,9 @@ class WsService {
    */
   public init(): void {
     if (this.socket) return;
-    this.socket = new WebSocket(`${import.meta.env.VITE_RECORD_WS_URL}/meeting/ws/recordings`);
+    this.socket = new WebSocket(
+      `ws://${import.meta.env.VITE_BACKEND_URL}:${import.meta.env.VITE_BACKEND_PORT}/meeting/ws/recordings`
+    );
     this.socket.addEventListener('open', () => console.log('[WS] connected'));
     this.socket.addEventListener('message', this._onMessage);
     this.socket.addEventListener('close', () => console.log('[WS] closed'));

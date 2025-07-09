@@ -96,9 +96,7 @@ export const getMeetingToken = async (meeting_id: string, username: string) => {
     {
       method: 'POST'
     },
-    true,
-    undefined,
-    import.meta.env.VITE_RECORD_BASE_URL
+    true
   );
   if (typeof res !== 'number') {
     const body = await res.json();
@@ -120,9 +118,7 @@ export const startBot = async (meeting_id: string) => {
     {
       method: 'POST'
     },
-    true,
-    undefined,
-    import.meta.env.VITE_RECORD_BASE_URL
+    true
   );
   if (typeof res !== 'number') {
     const body = await res.json();
@@ -142,9 +138,7 @@ export const stopBot = async (meeting_id: string) => {
     {
       method: 'POST'
     },
-    true,
-    undefined,
-    import.meta.env.VITE_RECORD_BASE_URL
+    true
   );
   if (typeof res !== 'number') {
     const body = await res.json();
@@ -155,7 +149,7 @@ export const stopBot = async (meeting_id: string) => {
   }
 };
 
-export const getAllMeetingListByuser_id = async () => {
+export const getAllMeetingListByUsername = async () => {
   const res = await requestWrapper(
     '/meeting/getAll',
     undefined,
@@ -182,9 +176,7 @@ export const getVideoBlob = async (path: string) => {
     {
       method: 'POST'
     },
-    true,
-    undefined,
-    import.meta.env.VITE_RECORD_BASE_URL
+    true
   );
   if (typeof res !== 'number') {
     const body = await res.blob();
@@ -204,9 +196,7 @@ export const getVideoPaths = async (meeting_id: string) => {
     {
       method: 'POST'
     },
-    true,
-    undefined,
-    import.meta.env.VITE_RECORD_BASE_URL
+    true
   );
   if (typeof res !== 'number') {
     const body = await res.json();
@@ -226,9 +216,7 @@ export const convertContent = async (meeting_id: string) => {
     {
       method: 'POST'
     },
-    true,
-    undefined,
-    import.meta.env.VITE_RECORD_BASE_URL
+    true
   );
   if (typeof res !== 'number') {
     const body = await res.json();

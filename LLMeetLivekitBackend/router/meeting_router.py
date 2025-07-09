@@ -5,7 +5,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
-from static.meeting import add_meeting, delete_meeting, find_meeting_by_id, find_meetings_by_user_id, add_user_to_meeting
+from static.meeting import add_meeting, delete_meeting, find_meeting_by_id, find_meetings_by_username, add_user_to_meeting
+from dataclasses import dataclass
 
 from utils.jwt_utils import get_current_user
 
@@ -42,6 +43,7 @@ class MeetingListGetResponse(BaseModel):
     success: bool
     meetings: List[dict]
 
+@dataclass
 class Meeting:
     meeting_id: str
     title: str
@@ -52,9 +54,9 @@ class Meeting:
     start_time: datetime
     end_time: datetime
 
-router = APIRouter(prefix="/bot", tags=["bot"])
-@router.post("/meeting/create", response_model=MeetingCreateResponse)
-async def create_meeting(data: MeetingCreateDto, user_id: int = Depends(get_current_user)):
+router = APIRouter(prefix="/meeting", tags=["meeting"])
+@router.post("/create", response_model=MeetingCreateResponse)
+async def create_meeting(data: MeetingCreateDto, username: str = Depends(get_current_user)):
     meeting_id = str(random.randint(100_000_000, 999_999_999))
     now = datetime.now()
 
@@ -62,7 +64,7 @@ async def create_meeting(data: MeetingCreateDto, user_id: int = Depends(get_curr
         meeting_id=meeting_id,
         title=data.title,
         description=data.description,
-        creator_id=user_id,
+        creator_id=username,
         created_at=now,
         status="ready",
         start_time=data.start_time,
@@ -72,31 +74,32 @@ async def create_meeting(data: MeetingCreateDto, user_id: int = Depends(get_curr
     if add_meeting(meeting) == 0:
         raise HTTPException(status_code=500, detail="会议创建失败")
 
-    if add_user_to_meeting(user_id, meeting_id, now) == 0:
+    if add_user_to_meeting(username, meeting_id, now) == 0:
         raise HTTPException(status_code=500, detail="加入会议失败")
 
     return MeetingCreateResponse(meeting_id=meeting_id, create_time=now)
 
 
-@router.post("/meeting/delete", response_model=MeetingDeleteResponse)
-async def delete_meeting(data: MeetingDeleteDto, user_id: int = Depends(get_current_user)):
+@router.post("/delete", response_model=MeetingDeleteResponse)
+async def delete_meeting(data: MeetingDeleteDto, username: str = Depends(get_current_user)):
     success = delete_meeting(data.meeting_id) > 0
     return MeetingDeleteResponse(success=success)
 
 
-@router.post("/meeting/get", response_model=MeetingGetResponse)
-async def get_meeting(data: MeetingGetDto, user_id: int = Depends(get_current_user)):
+@router.post("/get", response_model=MeetingGetResponse)
+async def get_meeting(data: MeetingGetDto, username: str = Depends(get_current_user)):
     meeting = find_meeting_by_id(data.meeting_id)
     return MeetingGetResponse(success=bool(meeting), meeting=meeting)
 
 
-@router.post("/meeting/join", response_model=MeetingJoinResponse)
-async def join_meeting(data: MeetingJoinDto, user_id: int = Depends(get_current_user)):
-    inserted = add_user_to_meeting(user_id, data.meeting_id, datetime.now())
+@router.post("/join", response_model=MeetingJoinResponse)
+async def join_meeting(data: MeetingJoinDto, username: str = Depends(get_current_user)):
+    inserted = add_user_to_meeting(username, data.meeting_id, datetime.now())
     return MeetingJoinResponse(success=inserted > 0)
 
 
-@router.get("/meeting/getAll", response_model=MeetingListGetResponse)
-async def get_all_meetings(user_id: int = Depends(get_current_user)):
-    meetings = find_meetings_by_user_id(user_id)
+@router.get("/getAll", response_model=MeetingListGetResponse)
+async def get_all_meetings(username: str = Depends(get_current_user)):
+    print(username)
+    meetings = find_meetings_by_username(username)
     return MeetingListGetResponse(success=True, meetings=meetings)
