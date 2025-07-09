@@ -160,36 +160,36 @@ const onFormSubmit = async ({ valid, values }: FormSubmitEvent) => {
     const sendRequest: MeetingInfo = {
       title: values.meetingTitle,
       description: values.meetingDescription,
-      startTime: new Date(values.meetingStartTime).toISOString(),
-      endTime: new Date(
+      start_time: new Date(values.meetingStartTime).toISOString(),
+      end_time: new Date(
         values.meetingStartTime.getTime() + values.meetingDuration * 60 * 1000
       ).toISOString()
     };
     const res = await createMeeting(sendRequest);
     if (typeof res !== 'number') {
       //获取meeting的token->livekit server sdk
-      const meetingId = res.meetingId;
-      const tokenRes = await getMeetingToken(meetingId, userStore.username);
+      const meeting_id = res.meeting_id;
+      const tokenRes = await getMeetingToken(meeting_id, userStore.username);
       // 加入python bot
-      const startBotRes = await startBot(meetingId);
+      const startBotRes = await startBot(meeting_id);
       console.log(startBotRes);
       if (typeof tokenRes !== 'number') {
         message.success('Meeting created successfully');
         meetingStore.setMeetingInfo({
-          meetingId: meetingId,
+          meeting_id: meeting_id,
           meetingToken: tokenRes.token,
           meetingName: values.meetingTitle,
           description: values.meetingDescription,
-          startTime: new Date(sendRequest.startTime).toISOString().slice(0, 19).replace('T', ' '),
-          endTime: new Date(sendRequest.endTime).toISOString().slice(0, 19).replace('T', ' '),
-          createTime: new Date(res.createTime).toISOString().slice(0, 19).replace('T', ' ')
+          start_time: new Date(sendRequest.start_time).toISOString().slice(0, 19).replace('T', ' '),
+          end_time: new Date(sendRequest.end_time).toISOString().slice(0, 19).replace('T', ' '),
+          create_time: new Date(res.create_time).toISOString().slice(0, 19).replace('T', ' ')
         });
-        recordStore.recordVideo(meetingId);
+        recordStore.recordVideo(meeting_id);
         router.push({ name: 'MeetingView' });
       } else {
         message.error('Meeting token generation failed');
         //撤回会议数据库的添加
-        const res = await deleteMeeting(meetingId);
+        const res = await deleteMeeting(meeting_id);
         if (res.success) {
           message.success('Meeting deleted successfully');
         }

@@ -2,6 +2,56 @@ import json
 from typing import Any, Dict, List, Optional
 from .database_connector import get_connection, logger
 
+def add_meeting(meeting):
+    conn = get_connection()
+    cur = conn.cursor()
+    sql = '''
+        INSERT INTO meeting (meeting_id, title, description, creator_id, created_at, status, start_time, end_time)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    '''
+    cur.execute(sql, (meeting.meeting_id, meeting.title, meeting.description,
+                      meeting.creator_id, meeting.created_at, meeting.status,
+                      meeting.start_time, meeting.end_time))
+    conn.commit()
+    return cur.rowcount
+
+def add_user_to_meeting(user_id, meeting_id, joined_at):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("INSERT INTO user_meeting (user_id, meeting_id, joined_at) VALUES (?, ?, ?)",
+                (user_id, meeting_id, joined_at))
+    conn.commit()
+    return cur.rowcount
+
+def delete_meeting(meeting_id):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM meeting WHERE meeting_id = ?", (meeting_id,))
+    conn.commit()
+    return cur.rowcount
+
+def find_meeting_by_id(meeting_id):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM meeting WHERE meeting_id = ?", (meeting_id,))
+    row = cur.fetchone()
+    if row:
+        keys = [column[0] for column in cur.description]
+        return dict(zip(keys, row))
+    return None
+
+def find_meetings_by_user_id(user_id):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute('''
+        SELECT m.* FROM meeting m
+        JOIN user_meeting um ON m.meeting_id = um.meeting_id
+        WHERE um.user_id = ?
+    ''', (user_id,))
+    rows = cur.fetchall()
+    keys = [column[0] for column in cur.description]
+    return [dict(zip(keys, row)) for row in rows]
+
 def insert_meeting_minute(
     meeting_id: str,
     username: str,  # 改为接收 username

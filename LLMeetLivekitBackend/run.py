@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from static.database_connector import init_connection_pool, close_connection_pool
-from router import meeting
+from router import bot_router, meeting_router
 import uvicorn
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
@@ -28,7 +28,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 # 挂载 auth 路由
-app.include_router(meeting.router)
+app.include_router(bot_router.router)
+app.include_router(meeting_router.router)
 
 
 def main():

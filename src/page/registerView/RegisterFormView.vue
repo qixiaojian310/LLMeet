@@ -159,7 +159,7 @@ const onFormSubmit = async (e: FormSubmitEvent) => {
 
   .title {
     color: var(--primary-text-color);
-    font-size: 32px;
+    font-size: 2rem;
     font-weight: bold;
     text-align: center;
     margin-bottom: 20px;

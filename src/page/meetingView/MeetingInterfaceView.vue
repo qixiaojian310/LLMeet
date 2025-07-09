@@ -104,8 +104,9 @@ import {
 import { useMeetingStore } from '@/stores/meetingStore';
 import { router } from '@/router';
 import { computed } from 'vue';
-import { deleteMeeting, stopBot } from '@/request/meeting';
+import { deleteMeeting } from '@/request/meeting';
 import { message } from 'ant-design-vue';
+import { closeMeetingWindow, openMeetingWindow } from '@/utils/meetingWindowUtils';
 
 const mainVideoRef = ref<HTMLDivElement | null>(null);
 const controllerState = reactive({ video: true, audio: true });
@@ -134,7 +135,7 @@ const meetingInfo = computed<MeetingInfoItem[]>(() => {
     },
     {
       title: 'Meeting ID',
-      value: meetingStore.meetingId
+      value: meetingStore.meeting_id
     },
     {
       title: 'Meeting Description',
@@ -142,15 +143,15 @@ const meetingInfo = computed<MeetingInfoItem[]>(() => {
     },
     {
       title: 'Meeting Start Time',
-      value: meetingStore.startTime
+      value: meetingStore.start_time
     },
     {
       title: 'Meeting End Time',
-      value: meetingStore.endTime
+      value: meetingStore.end_time
     },
     {
       title: 'Meeting Create Time',
-      value: meetingStore.createTime
+      value: meetingStore.create_time
     }
   ];
 });
@@ -211,6 +212,7 @@ const mountVideo = (el: Element | ComponentPublicInstance | null, participantSid
 };
 
 onMounted(async () => {
+  openMeetingWindow();
   room = new Room({
     adaptiveStream: true,
     dynacast: true,
@@ -281,7 +283,7 @@ onMounted(async () => {
   } catch (err) {
     console.error('LiveKit connect failed:', err);
     //撤回会议数据库的添加
-    const res = await deleteMeeting(meetingStore.meetingId);
+    const res = await deleteMeeting(meetingStore.meeting_id);
     message.error('Meeting connection failed');
     if (res.success) {
       message.success('Meeting deleted successfully');
@@ -312,6 +314,7 @@ const leaveMeeting = async () => {
   meetingStore.clearMeetingInfo();
   message.success('Meeting left successfully');
   router.push({ name: 'HomeView' });
+  closeMeetingWindow();
 };
 </script>
 

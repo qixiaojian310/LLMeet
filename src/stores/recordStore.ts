@@ -2,22 +2,22 @@
 import { defineStore } from 'pinia';
 
 interface RecordInfo {
-  meetingId: string;
+  meeting_id: string;
   isRecording: boolean;
 }
 
 export const useRecordStore = defineStore('record', {
   state: () => {
     return {
-      meetingId: '',
+      meeting_id: '',
       isRecording: false
     };
   },
   // 也可以这样定义
   // state: () => ({ count: 0 })
   actions: {
-    recordVideo(meetingId: string) {
-      this.meetingId = meetingId;
+    recordVideo(meeting_id: string) {
+      this.meeting_id = meeting_id;
       this.isRecording = true;
     },
     stopRecord() {

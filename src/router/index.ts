@@ -18,7 +18,7 @@ const routes: RouteRecordRaw[] = [
         name: 'HomeView',
         component: () => import('@/page/mainView/HomeView.vue'),
         meta: {
-          title: 'Home'
+          title: ''
         }
       },
       {
@@ -46,7 +46,7 @@ const routes: RouteRecordRaw[] = [
         }
       },
       {
-        path: 'conference-record/:meetingId',
+        path: 'conference-record/:meeting_id',
         name: 'ConferenceRecord',
         component: () => import('@/page/mainView/ConferenceRecordConvertView.vue'),
         meta: {

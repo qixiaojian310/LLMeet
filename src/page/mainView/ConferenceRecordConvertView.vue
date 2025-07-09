@@ -5,7 +5,7 @@
         <div v-for="video in videos" class="video-item" :key="video.path">
           <div class="video-content">
             <p class="video-user">
-              {{ video.userId }}
+              {{ video.user_id }}
             </p>
             <video class="video-js vjs-default-skin my-video" controls />
           </div>
@@ -85,7 +85,7 @@
                 <p class="title">
                   {{ chapter.title }}
                 </p>
-                <p class="description">{{ chapter.startTime }}s</p>
+                <p class="description">{{ chapter.start_time }}s</p>
               </div>
             </div>
           </template>
@@ -121,12 +121,12 @@ import TranscriptionViewer from '@/coreComponents/TranscriptionViewer.vue';
 
 // 获取路由参数
 const route = useRoute();
-const meetingId = (route.params.meetingId as string) || '';
+const meeting_id = (route.params.meeting_id as string) || '';
 
 // 视频数据结构
 interface VideoRecord {
   path: string;
-  userId: string;
+  user_id: string;
 }
 interface VideoItem extends VideoRecord {
   url: string;
@@ -146,17 +146,17 @@ const containerRef = ref<HTMLElement | null>(null);
 const conferenceChapters = ref([
   {
     title: 'Chapter 1',
-    startTime: 0,
+    start_time: 0,
     pic: new URL('@/assets/record/record-alt.jpg', import.meta.url).href
   },
   {
     title: 'Chapter 2',
-    startTime: 10,
+    start_time: 10,
     pic: new URL('@/assets/record/record-alt.jpg', import.meta.url).href
   },
   {
     title: 'Chapter 3',
-    startTime: 20,
+    start_time: 20,
     pic: new URL('@/assets/record/record-alt.jpg', import.meta.url).href
   }
 ]);
@@ -164,17 +164,17 @@ const conferenceChapters = ref([
 const convertResult = ref();
 
 async function loadVideos() {
-  if (!meetingId) {
-    console.error('缺少 meetingId 参数');
+  if (!meeting_id) {
+    console.error('缺少 meeting_id 参数');
     return;
   }
   try {
-    const records: VideoRecord[] = await getVideoPaths(meetingId);
+    const records: VideoRecord[] = await getVideoPaths(meeting_id);
     for (const rec of records) {
       const url = `${
         import.meta.env.VITE_RECORD_BASE_URL
       }/meeting/video?path=${encodeURIComponent(rec.path)}`; // ✅ 使用流接口
-      videos.value.push({ path: rec.path, userId: rec.userId, url });
+      videos.value.push({ path: rec.path, user_id: rec.user_id, url });
     }
   } catch (err) {
     console.error('加载视频失败：', err);
@@ -261,7 +261,7 @@ function bindProgressSync() {
 
 onMounted(async () => {
   await loadVideos();
-  const content = await convertContent(meetingId);
+  const content = await convertContent(meeting_id);
   convertResult.value = content;
   await nextTick();
   const videoEls = document.querySelectorAll<HTMLVideoElement>('video.my-video');

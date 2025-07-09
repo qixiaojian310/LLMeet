@@ -26,7 +26,7 @@ const registerBGURL = new URL('@/assets/login-bg.png', import.meta.url).href;
 }
 .controller-panel {
   height: 100%;
-  width: 500px;
+  width: 400px;
 }
 .register-bg {
   height: 100%;

@@ -13,10 +13,11 @@
     "windows": [
       {
         "title": "llmeet",
-        "width": 1050,
-        "height": 630,
-        "minWidth": 1000,
-        "minHeight": 620
+        "width": 700,
+        "height": 450,
+        "minWidth": 700,
+        "minHeight": 450,
+        "center": true
       }
     ],
     "macOSPrivateApi": true,

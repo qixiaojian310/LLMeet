@@ -3,15 +3,15 @@ import { requestWrapper } from './requestWrapper';
 export interface MeetingInfo {
   title: string;
   description: string;
-  startTime: string;
-  endTime: string;
+  start_time: string;
+  end_time: string;
 }
 
-export const joinMeeting = async (meetingId: string) => {
+export const joinMeeting = async (meeting_id: string) => {
   const res = await requestWrapper(
     `/meeting/join`,
     {
-      meetingId
+      meeting_id
     },
     {
       method: 'POST'
@@ -28,11 +28,11 @@ export const joinMeeting = async (meetingId: string) => {
   }
 };
 
-export const deleteMeeting = async (meetingId: string) => {
+export const deleteMeeting = async (meeting_id: string) => {
   const res = await requestWrapper(
     '/meeting/delete',
     {
-      meetingId: meetingId
+      meeting_id: meeting_id
     },
     {
       method: 'POST'
@@ -66,11 +66,11 @@ export const createMeeting = async (meetingInfo: MeetingInfo) => {
   }
 };
 
-export const getMeeting = async (meetingId: string) => {
+export const getMeeting = async (meeting_id: string) => {
   const res = await requestWrapper(
     '/meeting/get',
     {
-      meetingId
+      meeting_id
     },
     {
       method: 'POST'
@@ -86,11 +86,11 @@ export const getMeeting = async (meetingId: string) => {
   }
 };
 
-export const getMeetingToken = async (meetingId: string, username: string) => {
+export const getMeetingToken = async (meeting_id: string, username: string) => {
   const res = await requestWrapper(
     '/meeting/token',
     {
-      meetingId: meetingId,
+      meeting_id: meeting_id,
       username
     },
     {
@@ -109,13 +109,13 @@ export const getMeetingToken = async (meetingId: string, username: string) => {
   }
 };
 
-export const startBot = async (meetingId: string) => {
-  console.log('startBot', meetingId);
+export const startBot = async (meeting_id: string) => {
+  console.log('startBot', meeting_id);
 
   const res = await requestWrapper(
     '/meeting/start_bot',
     {
-      meetingId: meetingId
+      meeting_id: meeting_id
     },
     {
       method: 'POST'
@@ -133,11 +133,11 @@ export const startBot = async (meetingId: string) => {
   }
 };
 
-export const stopBot = async (meetingId: string) => {
+export const stopBot = async (meeting_id: string) => {
   const res = await requestWrapper(
     '/meeting/stop_bot',
     {
-      meetingId: meetingId
+      meeting_id: meeting_id
     },
     {
       method: 'POST'
@@ -155,7 +155,7 @@ export const stopBot = async (meetingId: string) => {
   }
 };
 
-export const getAllMeetingListByUserId = async () => {
+export const getAllMeetingListByuser_id = async () => {
   const res = await requestWrapper(
     '/meeting/getAll',
     undefined,
@@ -195,11 +195,11 @@ export const getVideoBlob = async (path: string) => {
   }
 };
 
-export const getVideoPaths = async (meetingId: string) => {
+export const getVideoPaths = async (meeting_id: string) => {
   const res = await requestWrapper(
     `/meeting/recordingPath`,
     {
-      meetingId
+      meeting_id
     },
     {
       method: 'POST'
@@ -217,11 +217,11 @@ export const getVideoPaths = async (meetingId: string) => {
   }
 };
 
-export const convertContent = async (meetingId: string) => {
+export const convertContent = async (meeting_id: string) => {
   const res = await requestWrapper(
     `/meeting/convert_content`,
     {
-      meetingId
+      meeting_id
     },
     {
       method: 'POST'

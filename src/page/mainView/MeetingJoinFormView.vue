@@ -101,15 +101,15 @@ const onFormSubmit = async ({ valid, values }: FormSubmitEvent) => {
       return;
     }
     meetingStore.setMeetingInfo({
-      meetingId: res.meeting.meetingId,
+      meeting_id: res.meeting.meeting_id,
       meetingToken: tokenRes.token,
       meetingName: res.meeting.title,
       description: res.meeting.description,
-      startTime: new Date(res.meeting.startTime).toISOString().slice(0, 19).replace('T', ' '),
-      endTime: new Date(res.meeting.endTime).toISOString().slice(0, 19).replace('T', ' '),
-      createTime: new Date(res.meeting.createdAt).toISOString().slice(0, 19).replace('T', ' ')
+      start_time: new Date(res.meeting.start_time).toISOString().slice(0, 19).replace('T', ' '),
+      end_time: new Date(res.meeting.end_time).toISOString().slice(0, 19).replace('T', ' '),
+      create_time: new Date(res.meeting.createdAt).toISOString().slice(0, 19).replace('T', ' ')
     });
-    recordStore.recordVideo(res.meeting.meetingId);
+    recordStore.recordVideo(res.meeting.meeting_id);
     router.push('/meeting');
     message.success('Meeting entered successfully');
   }

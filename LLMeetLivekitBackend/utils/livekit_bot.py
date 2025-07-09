@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Dict, List
 import httpx
 
-from static.memory import insert_meeting_minute
+from LLMeetLivekitBackend.static.meeting import insert_meeting_minute
 from utils.record_notificator import record_notificator
 from livekit import api as livekit_api, rtc as livekit_rtc
 
@@ -197,10 +197,6 @@ async def shutdown_bot(room_name: str):
             insert_meeting_minute(rec['meeting_id'], rec['username'], rec['path'])
     room = rooms.get(room_name)
     if room: await room.disconnect()
-    bot_tasks.pop(room_name, None)
-    rooms.pop(room_name, None)
-    recording_sessions.pop(room_name, None)
-    logger.info(f"[{room_name}] Bot 已完全停止")
     # 2. 调用 AI 服务器做转写
     files_to_send = [
         (
@@ -240,6 +236,10 @@ async def shutdown_bot(room_name: str):
             content=seg["text"]
         )
     logger.info(f"[{room_name}] 已将转写结果写入会议纪要")
+    bot_tasks.pop(room_name, None)
+    rooms.pop(room_name, None)
+    recording_sessions.pop(room_name, None)
+    logger.info(f"[{room_name}] Bot 已完全停止")
     await record_notificator.broadcast({
         "event": "merge_complete",
         "meeting_id": room_name,

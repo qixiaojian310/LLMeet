@@ -2,47 +2,47 @@
 import { defineStore } from 'pinia';
 
 interface MeetingInfo {
-  meetingId: string;
+  meeting_id: string;
   meetingToken: string;
   meetingName: string;
   description: string;
-  startTime: string;
-  endTime: string;
-  createTime: string;
+  start_time: string;
+  end_time: string;
+  create_time: string;
 }
 
 export const useMeetingStore = defineStore('meeting', {
   state: () => {
     return {
-      meetingId: '',
+      meeting_id: '',
       meetingToken: '',
       meetingName: '',
       description: '',
-      startTime: '',
-      endTime: '',
-      createTime: ''
+      start_time: '',
+      end_time: '',
+      create_time: ''
     };
   },
   // 也可以这样定义
   // state: () => ({ count: 0 })
   actions: {
     setMeetingInfo(meetingInfo: MeetingInfo) {
-      this.meetingId = meetingInfo.meetingId;
+      this.meeting_id = meetingInfo.meeting_id;
       this.meetingToken = meetingInfo.meetingToken;
       this.meetingName = meetingInfo.meetingName;
       this.description = meetingInfo.description;
-      this.startTime = meetingInfo.startTime;
-      this.endTime = meetingInfo.endTime;
-      this.createTime = meetingInfo.createTime;
+      this.start_time = meetingInfo.start_time;
+      this.end_time = meetingInfo.end_time;
+      this.create_time = meetingInfo.create_time;
     },
     clearMeetingInfo() {
-      this.meetingId = '';
+      this.meeting_id = '';
       this.meetingToken = '';
       this.meetingName = '';
       this.description = '';
-      this.startTime = '';
-      this.endTime = '';
-      this.createTime = '';
+      this.start_time = '';
+      this.end_time = '';
+      this.create_time = '';
     }
   }
 });

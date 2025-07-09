@@ -32,7 +32,7 @@ const navigationItems = ref([
     path: ''
   },
   {
-    title: 'Join Conference',
+    title: 'Join',
     icon: faSquarePlus,
     path: 'meeting-join-form'
   },
@@ -58,7 +58,7 @@ useWSService(event => {
   display: flex;
 
   .toolbar {
-    width: 150px;
+    width: fit-content;
     background: var(--primary-background-color);
     position: relative;
     z-index: 10;
@@ -79,7 +79,7 @@ useWSService(event => {
     }
 
     .content {
-      margin: 20px;
+      margin: 1rem;
       flex: 1;
       overflow: hidden;
     }

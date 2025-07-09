@@ -1,6 +1,6 @@
 <template>
   <div class="conference-records">
-    <Card v-for="conference in conferences" class="conference-record" :key="conference.meetingId">
+    <Card v-for="conference in conferences" class="conference-record" :key="conference.meeting_id">
       <template #header>
         <div class="title">
           <FontAwesomeIcon :icon="faVideo" />
@@ -18,11 +18,11 @@
             <div class="time-info">
               <div class="time-item">
                 <FontAwesomeIcon :icon="faClock" />
-                <span>{{ formatDateTime(conference.startTime) }}</span>
+                <span>{{ formatDateTime(conference.start_time) }}</span>
               </div>
               <div class="time-item">
                 <FontAwesomeIcon :icon="faHourglassEnd" />
-                <span>{{ formatDuration(conference.startTime, conference.endTime) }}</span>
+                <span>{{ formatDuration(conference.start_time, conference.end_time) }}</span>
               </div>
             </div>
           </div>
@@ -39,12 +39,14 @@
             />
           </AvatarGroup>
           <Button
-            :disabled="conference.meetingId === recordStore.meetingId && recordStore.isRecording"
+            :disabled="conference.meeting_id === recordStore.meeting_id && recordStore.isRecording"
             severity="info"
             class="toolbar-button"
-            @click="redirect(conference.meetingId)"
+            @click="redirect(conference.meeting_id)"
           >
-            <span v-if="conference.meetingId === recordStore.meetingId && recordStore.isRecording">
+            <span
+              v-if="conference.meeting_id === recordStore.meeting_id && recordStore.isRecording"
+            >
               <FontAwesomeIcon :icon="faSync" spin />
               Stop
             </span>
@@ -77,11 +79,11 @@ import { useRecordStore } from '@/stores/recordStore';
 
 const recordStore = useRecordStore();
 interface Conference {
-  meetingId: string;
+  meeting_id: string;
   title: string;
   description: string;
-  startTime: string;
-  endTime: string;
+  start_time: string;
+  end_time: string;
   endedAt: string;
   createdAt: string;
   status: string;
@@ -123,8 +125,8 @@ const getStatusSeverity = (status: string) => {
   }
 };
 
-const redirect = (meetingId: string) => {
-  router.push({ name: 'ConferenceRecord', params: { meetingId } });
+const redirect = (meeting_id: string) => {
+  router.push({ name: 'ConferenceRecord', params: { meeting_id } });
 };
 
 onMounted(async () => {

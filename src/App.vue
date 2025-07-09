@@ -8,16 +8,6 @@ const route = useRoute();
 <template>
   <main class="container">
     <div class="main-layout">
-      <div
-        v-if="
-          !noHeaderPages.some(page => {
-            return page === route.name;
-          })
-        "
-        class="header-view"
-      >
-        <Header />
-      </div>
       <RouterView />
     </div>
   </main>

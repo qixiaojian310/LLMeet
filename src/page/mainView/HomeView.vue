@@ -164,13 +164,12 @@ $scrollbar-width: 4px;
   .meeting-tool {
     flex: 0;
     height: 100%;
-    min-width: 400px;
+    min-width: 350px;
     overflow: auto;
     display: grid;
     grid-template-columns: repeat(2, 1fr); // 2列
     grid-auto-rows: minmax(150px, auto); // 自适应行高
     gap: 20px;
-    padding: 10px;
 
     /* 整个滚动条 */
     &::-webkit-scrollbar {

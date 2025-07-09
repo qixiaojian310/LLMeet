@@ -9,7 +9,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import Optional, Dict, List
 
-from static.memory import fetch_meeting_minutes, get_meeting_minutes, insert_meeting_minute
+from static.meeting import fetch_meeting_minutes, get_meeting_minutes, insert_meeting_minute
 from utils.jwt_utils import get_current_user  # 你的 JWT 验证依赖
 from utils.record_notificator import record_notificator
 from utils.livekit_bot import run_bot, rooms, recording_sessions, bot_tasks
@@ -25,32 +25,32 @@ import time
 # 数据模型
 # -----------------------------
 class MeetingRequest(BaseModel):
-    meetingId: str
+    meeting_id: str
     username: str
 
 class BotRequest(BaseModel):
-    meetingId: str
+    meeting_id: str
 
 class StopRequest(BaseModel):
-    meetingId: str
+    meeting_id: str
 
 class VideoPathRequest(BaseModel):
     path: str
     
 class ConvertContentRequest(BaseModel):
-    meetingId: str
+    meeting_id: str
 
 class VideoPathsRequest(BaseModel):
-    meetingId: str
+    meeting_id: str
 
 # -----------------------------
 # API 端点
 # -----------------------------
-router = APIRouter(prefix="/meeting", tags=["meeting"])
+router = APIRouter(prefix="/bot", tags=["bot"])
 
 @router.post("/start_bot")
 async def start_bot(req: BotRequest, user_id: int = Depends(get_current_user)):
-    room_name = req.meetingId
+    room_name = req.meeting_id
     if room_name in rooms and rooms[room_name].connection_state == livekit_rtc.ConnectionState.CONN_CONNECTED:
         logger.info(f"[{room_name}] Bot 已连接，无需重复启动")
         return {"status": "already connected", "room": room_name}
@@ -63,7 +63,7 @@ async def get_token(request: MeetingRequest, user_id: int = Depends(get_current_
         livekit_api.AccessToken()
         .with_identity(str(user_id))
         .with_name(request.username)
-        .with_grants(livekit_api.VideoGrants(room_join=True, room=request.meetingId))
+        .with_grants(livekit_api.VideoGrants(room_join=True, room=request.meeting_id))
         .to_jwt()
     )
     return {"token": token}
@@ -116,12 +116,12 @@ async def list_recordings():
     return {"recordings": sorted(recs, key=lambda x: x["created_at"], reverse=True)}
 
 @router.get("/status")
-async def status(meetingId: Optional[str] = Query(None)):
-    if meetingId:
-        rm = rooms.get(meetingId)
-        sess = recording_sessions.get(meetingId, {})
+async def status(meeting_id: Optional[str] = Query(None)):
+    if meeting_id:
+        rm = rooms.get(meeting_id)
+        sess = recording_sessions.get(meeting_id, {})
         return {
-            "room": meetingId,
+            "room": meeting_id,
             "connected": bool(rm and rm.connection_state == livekit_rtc.ConnectionState.CONN_CONNECTED),
             "active_recordings": len(sess),
             "recording_sessions": [
@@ -136,15 +136,15 @@ async def status(meetingId: Optional[str] = Query(None)):
 @router.post("/recordingPath", response_model=List[Dict[str, str]])
 async def recording_paths(req: VideoPathsRequest, user_id: int = Depends(get_current_user)):
     try:
-        recs = fetch_meeting_minutes(req.meetingId)
+        recs = fetch_meeting_minutes(req.meeting_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    return [{"path": r["minutes_path"], "userId": r["username"]} for r in recs]
+    return [{"path": r["minutes_path"], "user_id": r["username"]} for r in recs]
 
 @router.post("/convert_content")
 async def convert_content(req: ConvertContentRequest, user_id: int = Depends(get_current_user)):
     try:
-        content = get_meeting_minutes(req.meetingId)
+        content = get_meeting_minutes(req.meeting_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     return content
