@@ -81,12 +81,8 @@
     <div class="form-check-box">
       <p>Meeting option</p>
       <div class="form-check">
-        <Checkbox id="openMic" name="meetingOption" input-id="openMic" value="openMic" />
-        <label for="openMic">Open Mic</label>
-      </div>
-      <div class="form-check">
-        <Checkbox id="openCamera" name="meetingOption" input-id="openCamera" value="openCamera" />
-        <label for="openCamera">Open Camera</label>
+        <Checkbox id="joinMeeting" name="joinMeeting" input-id="joinMeeting" value="joinMeeting" />
+        <label for="joinMeeting">Enter Meeting Immediately</label>
       </div>
     </div>
     <Button type="submit" severity="secondary">
@@ -123,7 +119,8 @@ const initialValues = reactive({
   meetingTitle: '',
   meetingDescription: '',
   meetingStartTime: new Date(),
-  meetingDuration: 30
+  meetingDuration: 30,
+  joinMeeting: false
 });
 
 const durationOptions = reactive([
@@ -166,7 +163,7 @@ const onFormSubmit = async ({ valid, values }: FormSubmitEvent) => {
       ).toISOString()
     };
     const res = await createMeeting(sendRequest);
-    if (typeof res !== 'number') {
+    if (typeof res !== 'number' && values.joinMeeting) {
       //获取meeting的token->livekit server sdk
       const meeting_id = res.meeting_id;
       const tokenRes = await getMeetingToken(meeting_id, userStore.username);
@@ -194,6 +191,8 @@ const onFormSubmit = async ({ valid, values }: FormSubmitEvent) => {
           message.success('Meeting deleted successfully');
         }
       }
+    } else if (typeof res !== 'number') {
+      message.success('Meeting schedule successfully');
     } else {
       message.error('Meeting creation failed');
     }

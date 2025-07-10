@@ -40,7 +40,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'conference-records',
         name: 'ConferenceRecords',
-        component: () => import('@/page/mainView/ConferenceRecordsView.vue'),
+        component: () => import('@/page/recordView/ConferenceRecordsView.vue'),
         meta: {
           title: 'Conference Records'
         }
@@ -48,9 +48,17 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'conference-record/:meeting_id',
         name: 'ConferenceRecord',
-        component: () => import('@/page/mainView/ConferenceRecordConvertView.vue'),
+        component: () => import('@/page/recordView/ConferenceRecordConvertView.vue'),
         meta: {
           title: 'Conference Record'
+        }
+      },
+      {
+        path: 'schedule',
+        name: 'MeetingSchedule',
+        component: () => import('@/page/scheduleView/MeetingSchedule.vue'),
+        meta: {
+          title: 'Meeting Schedule'
         }
       }
     ]

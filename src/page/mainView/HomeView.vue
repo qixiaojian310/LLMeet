@@ -48,7 +48,7 @@
 import { Card } from 'primevue';
 import { ref, onMounted, onUnmounted } from 'vue';
 import { ToolCardItem } from '@/types/mainLayout/toolbar';
-import { faPlus, faUser, faVideo } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faTimeline, faUser, faVideo } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { router } from '@/router';
 const meetingTime = ref(
@@ -104,6 +104,13 @@ const tools = ref<ToolCardItem[]>([
     photo: new URL('@/assets/card/record.jpg', import.meta.url).href,
     description: 'View meeting record',
     path: 'conference-records'
+  },
+  {
+    title: 'Schedule',
+    icon: faTimeline,
+    photo: new URL('@/assets/card/schedule.jpg', import.meta.url).href,
+    description: 'View meeting schedule',
+    path: 'schedule'
   }
 ]);
 

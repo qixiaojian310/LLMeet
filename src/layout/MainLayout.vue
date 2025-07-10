@@ -16,7 +16,7 @@
 
 <script setup lang="ts">
 import Toolbar from '@/coreComponents/Toolbar.vue';
-import { faFileVideo, faHouse, faSquarePlus } from '@fortawesome/free-solid-svg-icons';
+import { faFileVideo, faHouse, faSquarePlus, faTimeline } from '@fortawesome/free-solid-svg-icons';
 import { ref } from 'vue';
 import { RouterView } from 'vue-router';
 import { router } from '@/router';
@@ -40,6 +40,11 @@ const navigationItems = ref([
     title: 'Records',
     icon: faFileVideo,
     path: 'conference-records'
+  },
+  {
+    title: 'Schedule',
+    icon: faTimeline,
+    path: 'schedule'
   }
 ]);
 

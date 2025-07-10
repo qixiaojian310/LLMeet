@@ -15,6 +15,7 @@ class MeetingCreateDto(BaseModel):
     description: str
     start_time: datetime
     end_time: datetime
+    join_meeting: bool = True
 
 class MeetingCreateResponse(BaseModel):
     meeting_id: str
@@ -34,6 +35,7 @@ class MeetingJoinDto(BaseModel):
 
 class MeetingJoinResponse(BaseModel):
     success: bool
+    reason: Optional[str] = None
 
 class MeetingGetResponse(BaseModel):
     success: bool
@@ -73,12 +75,7 @@ async def create_meeting(data: MeetingCreateDto, username: str = Depends(get_cur
 
     if add_meeting(meeting) == 0:
         raise HTTPException(status_code=500, detail="会议创建失败")
-
-    if add_user_to_meeting(username, meeting_id, now) == 0:
-        raise HTTPException(status_code=500, detail="加入会议失败")
-
     return MeetingCreateResponse(meeting_id=meeting_id, create_time=now)
-
 
 @router.post("/delete", response_model=MeetingDeleteResponse)
 async def delete_meeting(data: MeetingDeleteDto, username: str = Depends(get_current_user)):
@@ -94,6 +91,13 @@ async def get_meeting(data: MeetingGetDto, username: str = Depends(get_current_u
 
 @router.post("/join", response_model=MeetingJoinResponse)
 async def join_meeting(data: MeetingJoinDto, username: str = Depends(get_current_user)):
+    meeting = find_meeting_by_id(data.meeting_id)
+    if meeting is None:
+        return MeetingJoinResponse(success=False, reason="Meeting not found")
+    if meeting.end_time < datetime.now():
+        return MeetingJoinResponse(success=False, reason="Meeting has ended")
+    if meeting.start_time > datetime.now():
+        return MeetingJoinResponse(success=False, reason="Meeting has not started")
     inserted = add_user_to_meeting(username, data.meeting_id, datetime.now())
     return MeetingJoinResponse(success=inserted > 0)
 

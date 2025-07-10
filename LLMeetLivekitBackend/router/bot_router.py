@@ -9,7 +9,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import Optional, Dict, List
 
-from static.meeting import fetch_meeting_minutes, get_meeting_minutes, insert_meeting_minute
+from static.meeting import fetch_meeting_minutes, get_meeting_minutes
 from utils.jwt_utils import get_current_user  # 你的 JWT 验证依赖
 from utils.record_notificator import record_notificator
 from utils.livekit_bot import run_bot, rooms, recording_sessions, bot_tasks

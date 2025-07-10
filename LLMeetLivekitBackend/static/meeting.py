@@ -88,13 +88,13 @@ def find_meetings_by_username(username: str) -> List[Dict[str, Any]]:
 
 def insert_meeting_minute(
     meeting_id: str,
-    username: str,  # 改为接收 username
+    username: str,
     minute_record_path: str,
 ) -> bool:
     """
-    更新 user_meeting 表中的会议记录路径。
+    向 records 表插入一条新的会议录制记录，基于 user_meeting 的关联。
 
-    :param meeting_id: 会议 ID（room name）
+    :param meeting_id: 会议 ID
     :param username: 用户名
     :param minute_record_path: 合并后生成的文件路径
     :return: 成功返回 True，失败返回 False
@@ -102,56 +102,62 @@ def insert_meeting_minute(
     try:
         with get_connection() as conn:
             with conn.cursor(dictionary=True) as cursor:
-                # 2. 检查用户是否有权限访问该会议
+                # 查找 user_meeting_id
                 cursor.execute(
                     """
-                    SELECT 1 FROM user_meeting 
+                    SELECT user_meeting_id FROM user_meeting
                     WHERE meeting_id = %s AND username = %s
                     """,
                     (meeting_id, username)
                 )
-                if not cursor.fetchone():
-                    logger.error(f"[DB] 用户 {username}(username:{username}) 无权限访问会议 {meeting_id}")
+                result = cursor.fetchone()
+                if not result:
+                    logger.error(f"[DB] 用户 {username} 无权限或未加入会议 {meeting_id}")
                     return False
-                
-                # 3. 更新user_meeting表中的记录路径
+
+                user_meeting_id = result['user_meeting_id']
+
+                # 插入新的录制记录
                 cursor.execute(
                     """
-                    UPDATE user_meeting 
-                    SET minutes_path = %s 
-                    WHERE meeting_id = %s AND username = %s
+                    INSERT INTO records (user_meeting_id, minutes_path)
+                    VALUES (%s, %s)
                     """,
-                    (minute_record_path, meeting_id, username)
+                    (user_meeting_id, minute_record_path)
                 )
-                
+
                 conn.commit()
                 logger.info(
-                    f"[DB] 更新会议记录路径成功: "
-                    f"meeting_id={meeting_id}, username={username}, username={username}, minute_record_path={minute_record_path}"
+                    f"[DB] 插入会议录制成功: meeting_id={meeting_id}, username={username}, path={minute_record_path}"
                 )
                 return True
-                
+
     except Exception as e:
-        logger.error(f"[DB] 更新会议记录路径失败: {e}")
+        logger.error(f"[DB] 插入会议录制失败: {e}")
         if conn:
             conn.rollback()
         return False
-    
+
 
 def fetch_meeting_minutes(meeting_id: str) -> List[Dict[str, Any]]:
     """
-    根据 meeting_id 从 user_meeting 表中查询所有录制记录。
-    返回列表，元素为字典：{'meeting_id': ..., 'username': ..., 'minute_record_path': ...}
+    根据 meeting_id 查询与该会议关联的所有录制记录（记录文件路径和用户名）。
     """
     try:
         with get_connection() as conn:
             with conn.cursor(dictionary=True) as cursor:
-                sql = (
-                    "SELECT um.meeting_id, u.username, um.minutes_path "
-                    "FROM user_meeting um "
-                    "JOIN user u ON um.username = u.username "
-                    "WHERE um.meeting_id = %s"
-                )
+                sql = """
+                    SELECT
+                        um.meeting_id,
+                        u.username,
+                        r.minutes_path
+                    FROM
+                        records r
+                    JOIN user_meeting um ON r.user_meeting_id = um.user_meeting_id
+                    JOIN user u ON um.username = u.username
+                    WHERE
+                        um.meeting_id = %s
+                """
                 cursor.execute(sql, (meeting_id,))
                 rows = cursor.fetchall()
         return rows
@@ -175,7 +181,6 @@ def get_meeting_minutes(meeting_id: str) -> Optional[Dict[str, Any]]:
         if not row or not row[0]:
             return None
         # 数据库中存储的是 JSON 字符串，反序列化后返回 dict
-        print(row[0])
         return json.loads(row[0])
     except Exception as e:
         logger.error(f"get_meeting_minutes error: {e}")

@@ -29,12 +29,8 @@
     <div class="form-check-box">
       <p>Meeting option</p>
       <div class="form-check">
-        <Checkbox id="openMic" name="meetingOption" input-id="openMic" value="openMic" />
-        <label for="openMic">Open Mic</label>
-      </div>
-      <div class="form-check">
-        <Checkbox id="openCamera" name="meetingOption" input-id="openCamera" value="openCamera" />
-        <label for="openCamera">Open Camera</label>
+        <Checkbox id="joinMeeting" name="joinMeeting" input-id="joinMeeting" value="joinMeeting" />
+        <label for="joinMeeting">Enter Meeting Immediately</label>
       </div>
     </div>
     <Button type="submit" severity="secondary">
@@ -64,7 +60,8 @@ const recordStore = useRecordStore();
 const initialValues = reactive({
   username: userStore.username,
   meetingNumber: '',
-  meetingOption: []
+  meetingOption: [],
+  joinMeeting: false
 });
 
 const resolver = ({ values }: any) => {
@@ -90,14 +87,14 @@ const onFormSubmit = async ({ valid, values }: FormSubmitEvent) => {
       message.error('Meeting not found');
       return;
     }
-    const tokenRes = await getMeetingToken(values.meetingNumber, values.username);
-    if (typeof tokenRes === 'number') {
-      message.error('Meeting token generation failed');
-      return;
-    }
     const joinRes = await joinMeeting(values.meetingNumber);
     if (typeof joinRes === 'number') {
       message.error('Meeting join failed');
+      return;
+    }
+    const tokenRes = await getMeetingToken(values.meetingNumber, values.username);
+    if (typeof tokenRes === 'number') {
+      message.error('Meeting token generation failed');
       return;
     }
     meetingStore.setMeetingInfo({
@@ -110,7 +107,7 @@ const onFormSubmit = async ({ valid, values }: FormSubmitEvent) => {
       create_time: new Date(res.meeting.created_at).toISOString().slice(0, 19).replace('T', ' ')
     });
     recordStore.recordVideo(res.meeting.meeting_id);
-    router.push('/meeting');
+    router.push({ name: 'MeetingView' });
     message.success('Meeting entered successfully');
   }
 };
