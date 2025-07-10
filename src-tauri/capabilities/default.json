@@ -16,23 +16,7 @@
     "core:webview:allow-create-webview-window",
     {
       "identifier": "http:default",
-      "allow": [
-        {
-          "url": "http://localhost:7700"
-        },
-        {
-          "url": "http://120.76.53.217:7700"
-        },
-        {
-          "url": "http://192.168.1.101:7700"
-        },
-        {
-          "url": "http://47.107.191.186:7700"
-        },
-        {
-          "url": "http://47.*.*.*:7700"
-        }
-      ]
+      "allow": [{ "url": "http://47.112.13.32:7700"}]
     }
   ]
 }
