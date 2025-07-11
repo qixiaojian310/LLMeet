@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Dict, List
 import httpx
 
-from static.meeting import insert_meeting_minute
+from static.meeting import insert_meeting_minutes, insert_meeting_record
 from utils.record_notificator import record_notificator
 from livekit import api as livekit_api, rtc as livekit_rtc
 
@@ -150,10 +150,12 @@ async def run_bot(room_name: str, bot_identity: str, username: str):
     )
     # 连接
     room = livekit_rtc.Room()
+    max_participant = 0
     rooms[room_name] = room
     @room.on("participant_connected")
     def on_join(p):
         logger.info(f"[{room_name}] 用户加入: {p.identity}")
+        max_participant = max_participant+1
     @room.on("participant_disconnected")
     def on_leave(p):
         sid = f"{p.identity}_{p.sid}" 
@@ -161,7 +163,7 @@ async def run_bot(room_name: str, bot_identity: str, username: str):
             sessions[sid].is_recording = False
         if len(room.remote_participants) == 0:
             logger.info(f"[{room_name}] 房间空，自动关闭 Bot")
-            asyncio.create_task(shutdown_bot(room_name))
+            asyncio.create_task(shutdown_bot(room_name, max_participant))
     @room.on("track_subscribed")
     def on_track(track, pub, p):
         sid = f"{p.identity}_{p.sid}"
@@ -184,7 +186,7 @@ async def run_bot(room_name: str, bot_identity: str, username: str):
     except asyncio.CancelledError:
         await room.disconnect()
 
-async def shutdown_bot(room_name: str):
+async def shutdown_bot(room_name: str, max_participant: int):
     task = bot_tasks.get(room_name)
     if task:
         task.cancel()
@@ -194,7 +196,7 @@ async def shutdown_bot(room_name: str):
     await asyncio.gather(*(s.finalize_recording() for s in sessions.values()), return_exceptions=True)
     for s in sessions.values():
         for rec in s.final_files:
-            insert_meeting_minute(rec['meeting_id'], rec['username'], rec['path'])
+            insert_meeting_record(rec['meeting_id'], rec['username'], rec['path'])
     room = rooms.get(room_name)
     if room: await room.disconnect()
     # 2. 调用 AI 服务器做转写
@@ -212,12 +214,12 @@ async def shutdown_bot(room_name: str):
     ]
 
     # 如果想传 num_speakers，可作为 query param 或 form field
-    data = {"num_speakers": 3}
+    data = {"num_speakers": max_participant}
 
     try:
         async with httpx.AsyncClient(timeout=300.0) as client:
             resp = await client.post(
-                "http://localhost:8000/transcribe",
+                "http://localhost:6006/transcribe",
                 data=data,
                 files=files_to_send
             )
@@ -227,14 +229,13 @@ async def shutdown_bot(room_name: str):
     except Exception as e:
         logger.error(f"[{room_name}] 调用 /transcribe 失败：{e}")
         return
-
+    print(ai_result)
     # 3. 将 AI 转写结果写入会议纪要
-    for seg in ai_result.get("segments", []):
-        insert_meeting_minute(
-            meeting_id=room_name,
-            username=seg["speaker"],  # 说话人标签
-            content=seg["text"]
-        )
+    insert_meeting_minutes(
+        meeting_id=room_name,
+        segments=ai_result.get("segments", []),
+        language=ai_result.get("language", 'en')
+    )
     logger.info(f"[{room_name}] 已将转写结果写入会议纪要")
     bot_tasks.pop(room_name, None)
     rooms.pop(room_name, None)

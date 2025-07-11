@@ -11,7 +11,7 @@ from typing import Optional, Dict, List
 
 import pytz
 
-from static.meeting import fetch_meeting_minutes, get_meeting_minutes
+from static.meeting import fetch_meeting_records, get_meeting_minutes
 from utils.jwt_utils import get_current_user  # 你的 JWT 验证依赖
 from utils.record_notificator import record_notificator
 from utils.livekit_bot import run_bot, rooms, recording_sessions, bot_tasks
@@ -140,7 +140,7 @@ async def status(meeting_id: Optional[str] = Query(None)):
 async def recording_paths(req: VideoPathsRequest, username: str = Depends(get_current_user)):
     print(req.meeting_id)
     try:
-        recs = fetch_meeting_minutes(req.meeting_id)
+        recs = fetch_meeting_records(req.meeting_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     return [{"path": r["minutes_path"], "username": r["username"]} for r in recs]

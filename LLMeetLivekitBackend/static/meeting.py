@@ -105,7 +105,7 @@ def find_recorded_meetings_by_username(username: str) -> List[Dict[str, Any]]:
         return []
 
 
-def insert_meeting_minute(
+def insert_meeting_record(
     meeting_id: str,
     username: str,
     minute_record_path: str,
@@ -158,7 +158,7 @@ def insert_meeting_minute(
         return False
 
 
-def fetch_meeting_minutes(meeting_id: str) -> List[Dict[str, Any]]:
+def fetch_meeting_records(meeting_id: str) -> List[Dict[str, Any]]:
     """
     根据 meeting_id 查询与该会议关联的所有录制记录（记录文件路径和用户名）。
     """
@@ -181,26 +181,53 @@ def fetch_meeting_minutes(meeting_id: str) -> List[Dict[str, Any]]:
                 rows = cursor.fetchall()
         return rows
     except Exception as e:
-        logger.error(f"fetch_meeting_minutes error: {e}")
+        logger.error(f"fetch_meeting_records error: {e}")
         return []
     
+def insert_meeting_minutes(meeting_id: str, segments: Dict[str, Any], language: str = "en") -> bool:
+    """
+    插入或更新会议纪要到 minutes 表，包含 segments 和 language 字段。
+    """
+    try:
+        minutes_json = json.dumps(segments, ensure_ascii=False)
+
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    INSERT INTO minutes (meeting_id, segments, language)
+                    VALUES (%s, %s, %s) AS new
+                    ON DUPLICATE KEY UPDATE 
+                        segments = new.segments,
+                        language = new.language,
+                        created_at = CURRENT_TIMESTAMP
+                """, (meeting_id, minutes_json, language))
+                conn.commit()
+        return True
+    except Exception as e:
+        logger.error(f"insert_meeting_minutes error: {e}")
+        return False
+
 def get_meeting_minutes(meeting_id: str) -> Optional[Dict[str, Any]]:
     """
-    根据 meeting_id 从 meeting 表中查询合并后的会议纪要（JSON），
-    并返回为 Python 对象（dict）。
+    查询会议纪要，返回一个包含 segments、created_at、language 的字典。
     """
     try:
         with get_connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    "SELECT minutes FROM meeting WHERE meeting_id = %s LIMIT 1",
-                    (meeting_id,)
-                )
+            with conn.cursor(dictionary=True) as cursor:
+                cursor.execute("""
+                    SELECT segments, created_at, language
+                    FROM minutes
+                    WHERE meeting_id = %s
+                    LIMIT 1
+                """, (meeting_id,))
                 row = cursor.fetchone()
-        if not row or not row[0]:
+        if not row or not row["segments"]:
             return None
-        # 数据库中存储的是 JSON 字符串，反序列化后返回 dict
-        return json.loads(row[0])
+        return {
+            "segments": json.loads(row["segments"]),
+            "created_at": row["created_at"],
+            "language": row["language"]
+        }
     except Exception as e:
         logger.error(f"get_meeting_minutes error: {e}")
         return None
