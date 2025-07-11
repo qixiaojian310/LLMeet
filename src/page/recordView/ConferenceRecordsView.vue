@@ -1,4 +1,18 @@
 <template>
+  <Toolbar class="conference-toolbar">
+    <template #start>
+      <InputText
+        v-model="searchKeyword"
+        placeholder="Search by title"
+        @keyup.enter="filterConferences"
+        class="search-input"
+      />
+    </template>
+    <template #end>
+      <Button icon="pi pi-refresh" label="Refresh" @click="loadConferences" />
+    </template>
+  </Toolbar>
+
   <div class="conference-records" v-if="conferences && conferences.length > 0">
     <Card v-for="conference in conferences" :key="conference.meeting_id" class="conference-record">
       <template #header>
@@ -71,7 +85,7 @@ import {
   faClock,
   faSync
 } from '@fortawesome/free-solid-svg-icons';
-import { Card, Button, Tag } from 'primevue';
+import { Card, Button, Tag, Toolbar, InputText } from 'primevue';
 import { ref } from 'vue';
 import { router } from '@/router';
 import { onMounted } from 'vue';
@@ -94,7 +108,23 @@ interface Conference {
 }
 
 const conferences = ref<Conference[]>([]);
+const searchKeyword = ref('');
+const allConferences = ref<Conference[]>([]);
 
+const loadConferences = async () => {
+  const res = await getAllMeetingListWithRecordByUsername();
+  if (typeof res !== 'number' && res.meetings) {
+    allConferences.value = res.meetings;
+    filterConferences();
+  }
+};
+
+const filterConferences = () => {
+  const keyword = searchKeyword.value.toLowerCase();
+  conferences.value = allConferences.value.filter(conf =>
+    conf.title.toLowerCase().includes(keyword)
+  );
+};
 const formatDateTime = (dateString: string) => {
   const date = new Date(dateString);
   return date
@@ -133,14 +163,7 @@ const redirect = (meeting_id: string) => {
 };
 
 onMounted(async () => {
-  const res = await getAllMeetingListWithRecordByUsername();
-  if (typeof res !== 'number' && res.meetings) {
-    conferences.value = res.meetings.map((meeting: any) => ({
-      ...meeting,
-      // 如果API没有返回participants，可以设置默认值或留空
-      participants: meeting.participants || [1, 2, 3] // 示例数据，实际应从API获取
-    }));
-  }
+  await loadConferences();
 });
 </script>
 
