@@ -70,15 +70,14 @@ const redirect = (path: string) => {
     flex-direction: column;
     gap: 10px;
     width: 100%;
-    height: 50%;
   }
   &_bottom {
     display: flex;
     flex-direction: column;
     justify-content: end;
     width: 100%;
-    height: 50%;
     padding: 0 1rem;
+    flex: 1;
   }
 }
 </style>

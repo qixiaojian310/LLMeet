@@ -65,6 +65,9 @@ importers:
       ant-design-vue:
         specifier: 4.x
         version: 4.2.6(vue@3.5.13(typescript@5.6.3))
+      dayjs:
+        specifier: ^1.11.13
+        version: 1.11.13
       livekit-client:
         specifier: ^2.13.3
         version: 2.13.3(@types/dom-mediacapture-record@1.0.22)

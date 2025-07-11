@@ -1,5 +1,17 @@
 <template>
-  <Form v-slot="$form" :initialValues :resolver class="form" @submit="onFormSubmit">
+  <Form
+    v-slot="$form"
+    :initialValues
+    :resolver
+    class="form"
+    @submit="
+      e => {
+        loading = true;
+        onFormSubmit(e);
+        loading = false;
+      }
+    "
+  >
     <div class="form-text">
       <IftaLabel>
         <InputText
@@ -78,14 +90,7 @@
         </Message>
       </IftaLabel>
     </div>
-    <div class="form-check-box">
-      <p>Meeting option</p>
-      <div class="form-check">
-        <Checkbox id="joinMeeting" name="joinMeeting" input-id="joinMeeting" value="joinMeeting" />
-        <label for="joinMeeting">Enter Meeting Immediately</label>
-      </div>
-    </div>
-    <Button type="submit" severity="secondary">
+    <Button type="submit" severity="secondary" :disabled="loading">
       <FontAwesomeIcon :icon="faChampagneGlasses" />
       Enter Meeting
     </Button>
@@ -94,33 +99,18 @@
 
 <script setup lang="ts">
 import { Form, FormSubmitEvent } from '@primevue/forms';
-import { Button, IftaLabel, InputText, Message, Checkbox, DatePicker, Select } from 'primevue';
-import { reactive } from 'vue';
+import { Button, IftaLabel, InputText, Message, DatePicker, Select } from 'primevue';
+import { reactive, ref } from 'vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faChampagneGlasses } from '@fortawesome/free-solid-svg-icons';
-import { router } from '@/router';
 import { message } from 'ant-design-vue';
-import {
-  createMeeting,
-  deleteMeeting,
-  getMeetingToken,
-  MeetingInfo,
-  startBot
-} from '@/request/meeting';
-import { useUserStore } from '@/stores/userStore';
-import { useMeetingStore } from '@/stores/meetingStore';
-import { useRecordStore } from '@/stores/recordStore';
-
-const userStore = useUserStore();
-const meetingStore = useMeetingStore();
-const recordStore = useRecordStore();
+import { createMeeting, MeetingInfo } from '@/request/meeting';
 const initialValues = reactive({
   username: '',
   meetingTitle: '',
   meetingDescription: '',
   meetingStartTime: new Date(),
-  meetingDuration: 30,
-  joinMeeting: false
+  meetingDuration: 30
 });
 
 const durationOptions = reactive([
@@ -128,6 +118,8 @@ const durationOptions = reactive([
   { label: '1 hour', value: 60 },
   { label: '2 hours', value: 120 }
 ]);
+
+const loading = ref(false);
 
 const resolver = ({ values }: any) => {
   const errors: any = {};
@@ -152,50 +144,30 @@ const resolver = ({ values }: any) => {
 };
 
 const onFormSubmit = async ({ valid, values }: FormSubmitEvent) => {
-  if (valid) {
-    //转换时间
-    const sendRequest: MeetingInfo = {
-      title: values.meetingTitle,
-      description: values.meetingDescription,
-      start_time: new Date(values.meetingStartTime).toISOString(),
-      end_time: new Date(
-        values.meetingStartTime.getTime() + values.meetingDuration * 60 * 1000
-      ).toISOString()
-    };
-    const res = await createMeeting(sendRequest);
-    if (typeof res !== 'number' && values.joinMeeting) {
-      //获取meeting的token->livekit server sdk
-      const meeting_id = res.meeting_id;
-      const tokenRes = await getMeetingToken(meeting_id, userStore.username);
-      // 加入python bot
-      const startBotRes = await startBot(meeting_id);
-      console.log(startBotRes);
-      if (typeof tokenRes !== 'number') {
-        message.success('Meeting created successfully');
-        meetingStore.setMeetingInfo({
-          meeting_id: meeting_id,
-          meetingToken: tokenRes.token,
-          meetingName: values.meetingTitle,
-          description: values.meetingDescription,
-          start_time: new Date(sendRequest.start_time).toISOString().slice(0, 19).replace('T', ' '),
-          end_time: new Date(sendRequest.end_time).toISOString().slice(0, 19).replace('T', ' '),
-          create_time: new Date(res.create_time).toISOString().slice(0, 19).replace('T', ' ')
-        });
-        recordStore.recordVideo(meeting_id);
-        router.push({ name: 'MeetingView' });
-      } else {
-        message.error('Meeting token generation failed');
-        //撤回会议数据库的添加
-        const res = await deleteMeeting(meeting_id);
-        if (res.success) {
-          message.success('Meeting deleted successfully');
-        }
-      }
-    } else if (typeof res !== 'number') {
-      message.success('Meeting schedule successfully');
-    } else {
-      message.error('Meeting creation failed');
-    }
+  if (!valid) return;
+
+  // 构造请求参数
+  const startTime = new Date(values.meetingStartTime);
+  const endTime = new Date(startTime.getTime() + values.meetingDuration * 60 * 1000);
+
+  const sendRequest: MeetingInfo = {
+    title: values.meetingTitle,
+    description: values.meetingDescription,
+    start_time: startTime.toISOString(),
+    end_time: endTime.toISOString()
+  };
+
+  const res = await createMeeting(sendRequest);
+  // 创建失败
+  if (typeof res === 'number') {
+    message.error('Meeting creation failed');
+    return;
+  }
+
+  // 不加入会议，仅预定
+  if (!values.joinMeeting) {
+    message.success('Meeting scheduled successfully');
+    return;
   }
 };
 </script>

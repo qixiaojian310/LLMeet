@@ -12,7 +12,7 @@ from livekit import api as livekit_api, rtc as livekit_rtc
 
 import cv2
 import numpy as np
-from datetime import datetime
+from datetime import datetime, timezone
 from loguru import logger
 import wave
 import time
@@ -31,7 +31,7 @@ class RecordingSession:
         self.meeting_id = meeting_id
         self.start_time = time.time()
         # 文件路径
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         temp_dir = Path(f"temps/{meeting_id}")
         temp_dir.mkdir(parents=True, exist_ok=True)
         rec_dir = Path(f"recordings/{meeting_id}")

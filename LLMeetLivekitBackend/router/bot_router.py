@@ -9,6 +9,8 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import Optional, Dict, List
 
+import pytz
+
 from static.meeting import fetch_meeting_minutes, get_meeting_minutes
 from utils.jwt_utils import get_current_user  # 你的 JWT 验证依赖
 from utils.record_notificator import record_notificator
@@ -111,8 +113,8 @@ async def list_recordings():
         recs.append({
             "filename": f.name,
             "size": s.st_size,
-            "created_at": datetime.fromtimestamp(s.st_ctime).isoformat(),
-            "modified_at": datetime.fromtimestamp(s.st_mtime).isoformat()
+            "created_at": datetime.fromtimestamp(s.st_ctime, pytz.UTC).isoformat(),
+            "modified_at": datetime.fromtimestamp(s.st_mtime, pytz.UTC).isoformat()
         })
     return {"recordings": sorted(recs, key=lambda x: x["created_at"], reverse=True)}
 

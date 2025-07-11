@@ -151,7 +151,25 @@ export const stopBot = async (meeting_id: string) => {
 
 export const getAllMeetingListByUsername = async () => {
   const res = await requestWrapper(
-    '/meeting/getAll',
+    '/meeting/get_all',
+    undefined,
+    {
+      method: 'GET'
+    },
+    true
+  );
+  if (typeof res !== 'number') {
+    const body = await res.json();
+    console.log('res', body);
+    return body;
+  } else {
+    return res;
+  }
+};
+
+export const getAllMeetingListWithRecordByUsername = async () => {
+  const res = await requestWrapper(
+    '/meeting/get_all_with_records',
     undefined,
     {
       method: 'GET'

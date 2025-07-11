@@ -1,33 +1,70 @@
 :root {
-  --primary-color: #6a0dad; /* 紫色基调 */
-  --primary-color-light: #8e44ec;
-  --primary-color-lighter: #a678f2;
-  --primary-color-lightest: #c8aef7;
-  
-  --primary-background-color: #f4e2ff; /* 淡紫粉背景 */
-  --secondary-background-color: #fef6ff; /* 更柔的背景 */
+  --primary-color: #2a9d8f; /* 青绿色主色 */
+  --primary-color-light: #52b6a7;
+  --primary-color-lighter: #81cfc1;
+  --primary-color-lightest: #baf0e5;
 
-  --primary-text-color: #2c003e; /* 深紫文本 */
-  --secondary-text-color: #666666; /* 深紫文本 */
-  --secondary-hover-color: #454545; /* 深紫文本 */
+  --primary-background-color: #f9fcfb; /* 几乎白的背景，略带青绿 */
+  --secondary-background-color: #ffffff; /* 全白背景 */
 
-  --meeting-background-color: #ffffffcc; /* 半透明白 */
-  --meeting-expander-background-color: #ffe5fcdd; /* 轻粉 */
-  --meeting-content-background-color: #ffe8fa; /* 内容浅粉 */
-  --meeting-video-background-color: #e3d3ff; /* 视频背景偏淡紫 */
-  --header-background-color: #f5dbff; /* Header 偏亮紫 */
-  --meeting-info-background-color: #f7e6ff; /* Info背景 */
-  --meeting-control-background-color: #ffffffaa;
+  --primary-text-color: #1d2d2f; /* 深灰偏墨绿色 */
+  --secondary-text-color: #666666; /* 中性灰 */
+  --secondary-hover-color: #444444; /* 深一点 hover 状态 */
 
-  --meeting-text-color: #4a004a; /* 深紫灰文本 */
+  --meeting-background-color: #ffffffdd; /* 半透明白 */
+  --meeting-expander-background-color: #e3f7f4; /* 青绿色淡色 */
+  --meeting-content-background-color: #ecfbf8; /* 内容更淡 */
+  --meeting-video-background-color: #d6f5f0; /* 视频背景淡青 */
+  --header-background-color: #e9fefb; /* Header 淡青亮色 */
+  --meeting-info-background-color: #f0fdfa; /* Info背景 */
+  --meeting-control-background-color: #ffffffcc; /* 更透明的控制栏背景 */
 
-  --box-shadow-base-color: #d39fff; /* Fancy 的淡紫阴影 */
+  --meeting-text-color: #20443e; /* 青绿色深色文字 */
 
-  --primary-border-color: #d7b3ff; /* 紫粉边框 */
-  --secondary-border-color: #f0dbff; /* 更浅 */
+  --box-shadow-base-color: #b2e3da; /* 淡青色阴影 */
 
-  --record-info-background-color: #ffffffcc;
-  --record-info-border-color: #f0dbff;
+  --primary-border-color: #b2e3da; /* 主边框淡青 */
+  --secondary-border-color: #e0f5f1; /* 更淡边框 */
+
+  --record-info-background-color: #f1f1f1cc; /* 淡灰透明背景 */
+  --record-info-border-color: #e0f5f1;
+
+  --schedule-item-background-color: #e5eae788;
+
+  font-size: 12px;
+}
+.sdha {
+  --primary-color: #8e44ec; /* 主色：亮紫 */
+  --primary-color-light: #a678f2;
+  --primary-color-lighter: #bb8eff;
+  --primary-color-lightest: #d4b3ff;
+
+  --primary-background-color: #121212; /* 整体背景：极深灰 */
+  --secondary-background-color: #1e1e1e; /* 内容区背景：更浅一阶 */
+
+  --primary-text-color: #eeeeee; /* 主文本色：亮灰白 */
+  --secondary-text-color: #bbbbbb; /* 次文本色：中灰 */
+  --secondary-hover-color: #ffffff; /* 悬浮时纯白 */
+
+  --meeting-background-color: #1e1e1ecc; /* 卡片背景半透明 */
+  --meeting-expander-background-color: #2a1d3acc; /* 深紫调展开卡 */
+  --meeting-content-background-color: #2e223e; /* 内容区域偏蓝紫 */
+  --meeting-video-background-color: #1c1a30; /* 视频背景偏深蓝紫 */
+  --header-background-color: #2f2f4f; /* Header 背景：冷色紫蓝 */
+  --meeting-info-background-color: #2a213d; /* Info区更低亮紫调 */
+  --meeting-control-background-color: #292929aa;
+
+  --meeting-text-color: #d8c8ff; /* 内容文字偏亮的紫灰 */
+
+  --box-shadow-base-color: #3b2a50; /* 柔和紫黑阴影 */
+
+  --primary-border-color: #5e4c7d; /* 深紫边框 */
+  --secondary-border-color: #3a2f4a; /* 更暗一点的边框 */
+
+  --record-info-background-color: #3a2f4acc; /* 淡紫灰背景 */
+  --record-info-border-color: #5a3c7a;
+
+  --schedule-item-background-color: #2b2b2b55; /* 淡背景半透明 */
 
   font-size: 12px;
 }

@@ -67,3 +67,23 @@ export const signup = async (userInfo: RegisterUserInfo) => {
     return res;
   }
 };
+
+export const setTimezone = async (timezone: string) => {
+  const res = await requestWrapper(
+    '/auth/timezone',
+    { timezone },
+    {
+      method: 'POST'
+    },
+    true
+  );
+  if (typeof res !== 'number') {
+    const body = await res.json();
+    console.log('res', body);
+    if (body.success) {
+      return body;
+    }
+  } else {
+    return res;
+  }
+};

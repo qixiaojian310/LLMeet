@@ -86,6 +86,25 @@ def find_meetings_by_username(username: str) -> List[Dict[str, Any]]:
         logger.error(f"find_meetings_by_username error: {e}")   
         return []
 
+def find_recorded_meetings_by_username(username: str) -> List[Dict[str, Any]]:
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute('''
+                    SELECT DISTINCT m.*
+                    FROM meeting m
+                    JOIN user_meeting um ON m.meeting_id = um.meeting_id
+                    JOIN records r ON r.user_meeting_id = um.user_meeting_id
+                    WHERE um.username = %s
+                ''', (username,))
+                rows = cur.fetchall()
+                keys = [desc[0] for desc in cur.description]
+                return [dict(zip(keys, row)) for row in rows]
+    except Exception as e:
+        logger.error(f"find_recorded_meetings_by_username error: {e}")
+        return []
+
+
 def insert_meeting_minute(
     meeting_id: str,
     username: str,

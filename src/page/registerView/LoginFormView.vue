@@ -50,7 +50,7 @@ import { Button, IftaLabel, InputText, Message } from 'primevue';
 import { reactive } from 'vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { faChampagneGlasses } from '@fortawesome/free-solid-svg-icons';
-import { signin } from '@/request/authorization';
+import { setTimezone, signin } from '@/request/authorization';
 import { router } from '@/router';
 import { message } from 'ant-design-vue';
 import { useUserStore } from '@/stores/userStore';
@@ -80,17 +80,23 @@ const userStore = useUserStore();
 
 const onFormSubmit = async (e: FormSubmitEvent) => {
   if (e.valid) {
-    const res = await signin({
+    const loginRes = await signin({
       username: e.values.username,
       password: e.values.password
     });
-    if (typeof res !== 'number') {
-      userStore.login(e.values.username);
-      router.push({ path: '/home' });
-      message.success('Login successful');
-    } else {
+    if (typeof loginRes === 'number') {
       message.error('Login failed, please check your username and password');
+      return;
     }
+    userStore.login(e.values.username);
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const timezoneRes = await setTimezone(timezone);
+    if (typeof timezoneRes === 'number') {
+      message.error('Set timezone failed, please try again');
+      return;
+    }
+    router.push({ path: '/home' });
+    message.success('Login successful');
   }
 };
 </script>

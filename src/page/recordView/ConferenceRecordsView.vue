@@ -1,5 +1,5 @@
 <template>
-  <div class="conference-records">
+  <div class="conference-records" v-if="conferences && conferences.length > 0">
     <Card v-for="conference in conferences" :key="conference.meeting_id" class="conference-record">
       <template #header>
         <div class="title">
@@ -48,6 +48,18 @@
       </template>
     </Card>
   </div>
+  <div class="empty-box" v-else>
+    <Empty
+      :image="emptyRecordURL"
+      :image-style="{
+        height: '260px'
+      }"
+    >
+      <template #description>
+        <span> No meeting record </span>
+      </template>
+    </Empty>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -63,9 +75,11 @@ import { Card, Button, Tag } from 'primevue';
 import { ref } from 'vue';
 import { router } from '@/router';
 import { onMounted } from 'vue';
-import { getAllMeetingListByUsername } from '@/request/meeting';
+import { getAllMeetingListWithRecordByUsername } from '@/request/meeting';
 import { useRecordStore } from '@/stores/recordStore';
+import { Empty } from 'ant-design-vue';
 
+const emptyRecordURL = new URL('@/assets/loss/no_record.svg', import.meta.url).href;
 const recordStore = useRecordStore();
 interface Conference {
   meeting_id: string;
@@ -119,7 +133,7 @@ const redirect = (meeting_id: string) => {
 };
 
 onMounted(async () => {
-  const res = await getAllMeetingListByUsername();
+  const res = await getAllMeetingListWithRecordByUsername();
   if (typeof res !== 'number' && res.meetings) {
     conferences.value = res.meetings.map((meeting: any) => ({
       ...meeting,
@@ -142,11 +156,12 @@ onMounted(async () => {
 
   .conference-record {
     width: 100%;
+    height: fit-content;
     background: #ffffff;
     border: 1px solid var(--surface-border);
     border-radius: 16px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    padding: 20px 20px 0 20px;
+    padding: 20px;
     transition:
       transform 0.2s ease,
       box-shadow 0.2s ease;
@@ -225,5 +240,12 @@ onMounted(async () => {
   .p-card-body {
     padding: 20px 20px 0 20px !important;
   }
+}
+.empty-box {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 </style>

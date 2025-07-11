@@ -114,8 +114,8 @@ const meetingStore = useMeetingStore();
 const openThumbnails = ref(false);
 const openMeetingInfo = ref(false);
 const token = meetingStore.meetingToken;
-const wsUrl = `ws://${import.meta.env.VITE_BACKEND_URL}:${import.meta.env.VITE_BACKEND_PORT}`;
-const iconPath = new URL('@/assets/icon/white.png', import.meta.env.VITE_HTTP_PROTOCAL).href;
+const wsUrl = import.meta.env.VITE_LIVEKIT_WS_URL;
+const iconPath = new URL('@/assets/icon/white.png', import.meta.url).href;
 let room: Room;
 
 interface AttachedTrack {

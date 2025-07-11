@@ -2,7 +2,7 @@ import { getCurrentWindow, LogicalSize } from '@tauri-apps/api/window';
 
 export const closeMeetingWindow = () => {
   const currentWindow = getCurrentWindow();
-  currentWindow.setSize(new LogicalSize(650, 400));
+  currentWindow.setSize(new LogicalSize(880, 530));
   currentWindow.center();
 };
 

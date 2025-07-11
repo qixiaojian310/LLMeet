@@ -3,7 +3,7 @@ from typing import Optional, Dict, Any
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 import jwt
-import datetime
+from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -17,10 +17,11 @@ class JWTManager:
 
     def create_token(self, username: str) -> str:
         """创建 JWT，只包含 username"""
+        now = datetime.now(timezone.utc)
         payload = {
             "sub": username,
-            "iat": datetime.datetime.utcnow(),
-            "exp": datetime.datetime.utcnow() + datetime.timedelta(seconds=self.expire_seconds),
+            "iat": now,
+            "exp": now + timedelta(seconds=self.expire_seconds),
         }
         return jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
 

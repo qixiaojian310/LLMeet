@@ -1,5 +1,5 @@
 from .database_connector import get_connection, logger
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Tuple
 
 
@@ -32,7 +32,7 @@ def insert_user(username: str, email: str, hashed_password: str) -> bool:
                 cursor.execute("""
                     INSERT INTO user (username, email, password, created_at)
                     VALUES (%s, %s, %s, %s)
-                """, (username, email, hashed_password, datetime.utcnow()))
+                """, (username, email, hashed_password, datetime.now(timezone.utc)))
                 conn.commit()
         return True
     except Exception as e:
@@ -52,3 +52,27 @@ def get_user_by_username(username: str) -> Optional[Tuple[int, str, str]]:
     except Exception as e:
         logger.error(f"get_user_by_username error: {e}")
         return None
+
+def save_user_timezone(username: str, timezone: str) -> bool:
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "UPDATE user SET timezone = %s WHERE username = %s",
+                    (timezone, username)
+                )
+                conn.commit()
+        return True
+    except Exception as e:
+        logger.error(f"save_user_timezone error: {e}")
+        return False
+    
+def get_user_timezone(username: str) -> str:
+    with get_connection() as conn:
+        with conn.cursor(dictionary=True) as cursor:
+            cursor.execute(
+                "SELECT timezone FROM user WHERE username = %s",
+                (username,)
+            )
+            row = cursor.fetchone()
+            return row["timezone"] if row and row["timezone"] else "UTC"
