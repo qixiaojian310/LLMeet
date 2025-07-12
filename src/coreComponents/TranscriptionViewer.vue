@@ -2,7 +2,8 @@
   <div class="transcription-viewer">
     <div class="header">
       <h2>Transcription</h2>
-      <span class="language">Language: {{ data.language.toUpperCase() }}</span>
+      <p class="language">Language: {{ data.language.toUpperCase() }}</p>
+      <p class="create-time">Created at: {{ data.created_at }}</p>
     </div>
     <ul class="segments-list">
       <li v-for="(seg, index) in data.segments" :key="index" class="segment-item">
@@ -25,6 +26,7 @@ type Segment = { speaker: string; start: number; end: number; text: string };
 
 interface TranscriptionData {
   language: string;
+  created_at: string;
   segments: Segment[];
 }
 
