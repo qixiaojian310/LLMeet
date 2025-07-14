@@ -23,6 +23,8 @@ from datetime import datetime
 from loguru import logger
 import wave
 import time
+import httpx
+
 # -----------------------------
 # 数据模型
 # -----------------------------
@@ -44,7 +46,13 @@ class ConvertContentRequest(BaseModel):
 
 class VideoPathsRequest(BaseModel):
     meeting_id: str
-
+    
+# 定义请求结构体（与前面 /summarize 接口保持一致）
+class TranscriptSegment(BaseModel):
+    start: float
+    end: float
+    text: str
+    speaker: str
 # -----------------------------
 # API 端点
 # -----------------------------
@@ -152,6 +160,25 @@ async def convert_content(req: ConvertContentRequest, username: str = Depends(ge
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     return content
+
+@router.post("/get_summarization")
+async def get_summarization(req: List[TranscriptSegment]):
+    try:
+        # 请求转发到本地模型服务
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "http://localhost:6007/summarize",
+                json=[segment.dict() for segment in req],  # 注意：直接发送 List[Dict]
+                timeout=60.0
+            )
+
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail=response.text)
+
+        return response.json()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Forwarding failed: {str(e)}")
+
 
 @router.websocket("/ws/recordings")
 async def websocket_endpoint(ws: WebSocket):
