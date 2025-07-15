@@ -1,3 +1,4 @@
+import json
 import os
 import asyncio
 import subprocess
@@ -7,7 +8,7 @@ from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, Request, Query, WebSocket, WebSocketDisconnect
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from typing import Optional, Dict, List
+from typing import Literal, Optional, Dict, List
 
 import pytz
 
@@ -47,12 +48,24 @@ class ConvertContentRequest(BaseModel):
 class VideoPathsRequest(BaseModel):
     meeting_id: str
     
-# 定义请求结构体（与前面 /summarize 接口保持一致）
+class Message(BaseModel):
+    role: Literal["system", "user", "assistant"]
+    content: str
+    
 class TranscriptSegment(BaseModel):
     start: float
     end: float
     text: str
     speaker: str
+    
+class SummaryRequest(BaseModel):
+    segments: List[TranscriptSegment]
+
+class ChatRequest(BaseModel):
+    messages: List[Message]
+    segments: Optional[List[TranscriptSegment]]
+    stream: bool = True  # 跳转时默认开启流式
+
 # -----------------------------
 # API 端点
 # -----------------------------
@@ -161,23 +174,57 @@ async def convert_content(req: ConvertContentRequest, username: str = Depends(ge
         raise HTTPException(status_code=500, detail=str(e))
     return content
 
-@router.post("/get_summarization")
-async def get_summarization(req: List[TranscriptSegment]):
-    try:
-        # 请求转发到本地模型服务
+# —— 代理 /v1/chat/completions —— #
+@router.post("/v1/chat/completions")
+async def proxy_completions(req: ChatRequest):
+    async def event_stream():
         async with httpx.AsyncClient() as client:
-            response = await client.post(
-                "http://localhost:6007/summarize",
-                json=[segment.dict() for segment in req],  # 注意：直接发送 List[Dict]
-                timeout=60.0
+            # 直接把 ChatRequest JSON 发给本地模型服务
+            async with client.stream(
+                "POST",
+                "http://localhost:7000/v1/chat/completions",
+                json=req.model_dump(),
+                timeout=60.0,
+            ) as resp:
+                if resp.status_code != 200:
+                    text = await resp.text()
+                    raise HTTPException(status_code=resp.status_code, detail=text)
+                # 按照 SSE（Server-Sent Events）标准，逐块转发
+                async for chunk in resp.aiter_bytes():
+                    yield chunk
+
+    return StreamingResponse(event_stream(), media_type="text/event-stream")
+
+
+# —— 代理 /v1/chat/summarization —— #
+@router.post("/v1/chat/summarization")
+async def proxy_summarization(req: SummaryRequest):
+    # 把 List[TranscriptSegment] 转成 OpenAI 风格 ChatRequest
+    payload = ChatRequest(
+        messages=[
+            Message(
+                role="user",
+                content=json.dumps([seg.model_dump() for seg in req.segments], ensure_ascii=False),
             )
+        ],
+        segments=None,
+        stream=True,
+    )
+    async def event_stream():
+        async with httpx.AsyncClient() as client:
+            async with client.stream(
+                "POST",
+                "http://localhost:7000/v1/chat/summarization",
+                json=payload.model_dump(),
+                timeout=60.0,
+            ) as resp:
+                if resp.status_code != 200:
+                    text = await resp.text()
+                    raise HTTPException(status_code=resp.status_code, detail=text)
+                async for chunk in resp.aiter_bytes():
+                    yield chunk
 
-        if response.status_code != 200:
-            raise HTTPException(status_code=response.status_code, detail=response.text)
-
-        return response.json()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Forwarding failed: {str(e)}")
+    return StreamingResponse(event_stream(), media_type="text/event-stream")
 
 
 @router.websocket("/ws/recordings")

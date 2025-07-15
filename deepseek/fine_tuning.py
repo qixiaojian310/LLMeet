@@ -6,7 +6,7 @@ from transformers import BitsAndBytesConfig
 from trl import SFTTrainer, SFTConfig
 
 # 设置基础模型和缓存路径
-model_name = "unsloth/Qwen3-32B-bnb-4bit"
+model_name = "unsloth/Qwen3-14B-bnb-4bit"
 cache_dir = "/root/autodl-tmp/llm-model"
 
 # 1. 加载底座量化模型
@@ -108,8 +108,8 @@ train_stage(
         "text": [f"<|user|>\nPlease summarize the following article:\n\n{doc}\n<|end|>" for doc in batch["article"]],
         "summary": batch["highlights"]
     },
-    adapter_save_path=f"{cache_dir}/qwen3-32b-summarization-lora-finetuned",
-    output_dir=f"{cache_dir}/qwen3-32b-summarization-lora",
+    adapter_save_path=f"{cache_dir}/qwen3-14b-summarization-lora-finetuned",
+    output_dir=f"{cache_dir}/qwen3-14b-summarization-lora",
     max_steps=30,
     learning_rate=2e-4,
     stage_name="CNN/DailyMail 微调",
@@ -127,8 +127,8 @@ train_stage(
         "text": [f"<|user|>\nSummarize this meeting transcript:\n\n{transcript}\n<|end|>" for transcript in batch["transcript"]],
         "summary": batch["summary"]
     },
-    adapter_save_path=f"{cache_dir}/qwen3-32b-summarization-lora-finetuned-meetingbank",
-    output_dir=f"{cache_dir}/qwen3-32b-summarization-lora-meetingbank",
+    adapter_save_path=f"{cache_dir}/qwen3-14b-summarization-lora-finetuned-meetingbank",
+    output_dir=f"{cache_dir}/qwen3-14b-summarization-lora-meetingbank",
     max_steps=30,
     learning_rate=2e-5,
     stage_name="MeetingBank 微调"
