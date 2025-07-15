@@ -178,6 +178,7 @@ const onFormSubmit = async ({ valid, values }: FormSubmitEvent) => {
   align-items: center;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 10px;
   height: 100%;
 

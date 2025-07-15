@@ -212,7 +212,7 @@ const mountVideo = (el: Element | ComponentPublicInstance | null, participantSid
 };
 
 onMounted(async () => {
-  openMeetingWindow();
+  await openMeetingWindow();
   room = new Room({
     adaptiveStream: true,
     dynacast: true,
@@ -314,7 +314,7 @@ const leaveMeeting = async () => {
   meetingStore.clearMeetingInfo();
   message.success('Meeting left successfully');
   router.push({ name: 'HomeView' });
-  closeMeetingWindow();
+  await closeMeetingWindow();
 };
 </script>
 

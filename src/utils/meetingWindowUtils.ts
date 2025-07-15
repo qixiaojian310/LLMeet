@@ -1,13 +1,13 @@
 import { getCurrentWindow, LogicalSize } from '@tauri-apps/api/window';
 
-export const closeMeetingWindow = () => {
+export const closeMeetingWindow = async () => {
   const currentWindow = getCurrentWindow();
-  currentWindow.setSize(new LogicalSize(880, 530));
+  await currentWindow.setSize(new LogicalSize(880, 530));
   currentWindow.center();
 };
 
-export const openMeetingWindow = () => {
+export const openMeetingWindow = async () => {
   const currentWindow = getCurrentWindow();
-  currentWindow.setSize(new LogicalSize(1000, 600));
+  await currentWindow.setSize(new LogicalSize(1000, 600));
   currentWindow.center();
 };

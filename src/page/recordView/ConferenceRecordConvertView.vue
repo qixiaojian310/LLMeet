@@ -11,104 +11,79 @@
           </div>
         </div>
       </div>
-      <div class="video-convert-btn">
-        <button
-          @click="
-            () => {
-              showConvert = !showConvert;
-              showChapter = false;
-            }
-          "
-        >
-          Convert
+      <div class="video-control">
+        <button class="control-btn" @click="togglePlay">
+          <FontAwesomeIcon :icon="isPlaying ? faPause : faPlay" />
         </button>
-        <button
-          @click="
-            () => {
-              showChapter = !showChapter;
-              showConvert = false;
-            }
-          "
+        <button class="control-btn" @click="seekRelative(-5)">
+          <FontAwesomeIcon :icon="faBackward" />
+        </button>
+        <span class="time-display"
+          >{{ formatTime(currentTime) }} / {{ formatTime(totalTime) }}</span
         >
-          Chapter
+        <div class="progress-bar" @click="onProgressClick">
+          <div class="progress-filled" :style="{ width: globalProgress + '%' }"></div>
+        </div>
+        <button class="control-btn" @click="seekRelative(5)">
+          <FontAwesomeIcon :icon="faForward" />
+        </button>
+        <div class="volume-control">
+          <FontAwesomeIcon :icon="faVolumeUp" />
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.01"
+            v-model.number="volume"
+            @input="onVolumeChange"
+          />
+        </div>
+        <button class="control-btn" @click="toggleFullScreen">
+          <FontAwesomeIcon :icon="isFullScreen ? faCompress : faExpand" />
         </button>
       </div>
     </div>
-    <div class="video-control">
-      <button class="control-btn" @click="togglePlay">
-        <FontAwesomeIcon :icon="isPlaying ? faPause : faPlay" />
-      </button>
-      <button class="control-btn" @click="seekRelative(-5)">
-        <FontAwesomeIcon :icon="faBackward" />
-      </button>
-      <span class="time-display">{{ formatTime(currentTime) }} / {{ formatTime(totalTime) }}</span>
-      <div class="progress-bar" @click="onProgressClick">
-        <div class="progress-filled" :style="{ width: globalProgress + '%' }"></div>
-      </div>
-      <button class="control-btn" @click="seekRelative(5)">
-        <FontAwesomeIcon :icon="faForward" />
-      </button>
-      <div class="volume-control">
-        <FontAwesomeIcon :icon="faVolumeUp" />
-        <input
-          type="range"
-          min="0"
-          max="1"
-          step="0.01"
-          v-model.number="volume"
-          @input="onVolumeChange"
-        />
-      </div>
-      <button class="control-btn" @click="toggleFullScreen">
-        <FontAwesomeIcon :icon="isFullScreen ? faCompress : faExpand" />
-      </button>
-    </div>
-    <div class="video-chapter" :class="{ visible: showChapter }">
-      <p style="font-size: 20px; color: var(--primary-text-color)">Chapter</p>
-      <div class="video-chapter-panel">
-        <Card v-for="chapter in conferenceChapters" class="chapter" :key="chapter.title">
-          <template #header>
-            <div
-              :style="{
-                background: `url(${chapter.pic}) no-repeat center center`,
-                backgroundSize: '100% auto'
-              }"
-              class="chapter-photo"
-            />
-          </template>
-          <template #content>
-            <div class="chapter-content">
-              <div class="icon">
-                <FontAwesomeIcon :icon="faVideo" />
-              </div>
-              <div class="text">
-                <p class="title">
-                  {{ chapter.title }}
-                </p>
-                <p class="description">{{ chapter.start_time }}s</p>
-              </div>
-            </div>
-          </template>
-        </Card>
-      </div>
-    </div>
-    <div class="video-convert" :class="{ visible: showConvert }">
-      <TranscriptionViewer v-if="convertResult" :data="convertResult" />
+    <div class="video-chatbox">
+      <Tabs value="video">
+        <TabList>
+          <Tab value="transcription"
+            ><FontAwesomeIcon :icon="faFileText" /><span class="tab-text">Transcription</span></Tab
+          >
+          <Tab value="summary"
+            ><FontAwesomeIcon :icon="faFileText" /><span class="tab-text">Summary</span></Tab
+          >
+          <Tab value="chat">
+            <FontAwesomeIcon :icon="faChain" /><span class="tab-text">Chat</span>
+          </Tab>
+        </TabList>
+        <TabPanels style="flex: 1; height: 0">
+          <TabPanel value="transcription">
+            <TranscriptionViewer v-if="convertResult" :data="convertResult" />
+          </TabPanel>
+          <TabPanel value="summary">
+            <SummarizationViewer v-if="convertResult" :segments="convertResult.segments" />
+          </TabPanel>
+          <TabPanel value="chat">
+            <ChatViewer v-if="convertResult" :segments="convertResult.segments" />
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
-import { Card } from 'primevue';
+import { Tab, TabList, TabPanel, TabPanels, Tabs } from 'primevue';
 import {
   faBackward,
+  faChain,
   faCompress,
   faExpand,
+  faFileText,
   faForward,
   faPause,
   faPlay,
-  faVideo,
   faVolumeUp
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
@@ -118,6 +93,9 @@ import type Player from 'video.js/dist/types/player';
 import 'video.js/dist/video-js.css';
 import { convertContent, getVideoPaths } from '@/request/meeting'; // ✅ 不再用 getVideoBlob
 import TranscriptionViewer from '@/coreComponents/TranscriptionViewer.vue';
+import SummarizationViewer from '@/coreComponents/SummarizationViewer.vue';
+import ChatViewer from '@/coreComponents/ChatViewer.vue';
+import { closeMeetingWindow, openMeetingWindow } from '@/utils/meetingWindowUtils';
 
 // 获取路由参数
 const route = useRoute();
@@ -133,8 +111,6 @@ interface VideoItem extends VideoRecord {
 }
 const videos = ref<VideoItem[]>([]);
 const players: Player[] = [];
-const showConvert = ref(false);
-const showChapter = ref(false);
 const isPlaying = ref(false);
 const currentTime = ref(0);
 const totalTime = ref(0);
@@ -142,24 +118,6 @@ const globalProgress = ref(0);
 const volume = ref(1);
 const isFullScreen = ref(false);
 const containerRef = ref<HTMLElement | null>(null);
-// 示例章节
-const conferenceChapters = ref([
-  {
-    title: 'Chapter 1',
-    start_time: 0,
-    pic: new URL('@/assets/record/record-alt.jpg', import.meta.url).href
-  },
-  {
-    title: 'Chapter 2',
-    start_time: 10,
-    pic: new URL('@/assets/record/record-alt.jpg', import.meta.url).href
-  },
-  {
-    title: 'Chapter 3',
-    start_time: 20,
-    pic: new URL('@/assets/record/record-alt.jpg', import.meta.url).href
-  }
-]);
 
 const convertResult = ref();
 
@@ -260,6 +218,7 @@ function bindProgressSync() {
 }
 
 onMounted(async () => {
+  await openMeetingWindow();
   await loadVideos();
   const content = await convertContent(meeting_id);
   convertResult.value = content;
@@ -284,8 +243,9 @@ onMounted(async () => {
   bindProgressSync();
 });
 
-onBeforeUnmount(() => {
+onBeforeUnmount(async () => {
   players.forEach(p => p.dispose());
+  await closeMeetingWindow();
 });
 </script>
 
@@ -294,7 +254,6 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   display: flex;
-  flex-direction: column;
   gap: 10px;
 
   .video-control {
@@ -351,10 +310,11 @@ onBeforeUnmount(() => {
   }
 
   .video-panel {
-    width: 100%;
+    min-width: 60%;
     height: 100%;
     display: flex;
     gap: 10px;
+    flex-direction: column;
 
     .video-player {
       flex: 1;
@@ -363,10 +323,10 @@ onBeforeUnmount(() => {
       width: 100%;
       height: 100%;
       display: flex;
+      flex-direction: column;
 
       .video-item {
-        padding: 10px;
-        width: 50%;
+        width: 100%;
         height: fit-content;
 
         .video-content {
@@ -417,77 +377,22 @@ onBeforeUnmount(() => {
     }
   }
 
-  .video-chapter {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    width: 300px;
-    background: linear-gradient(to bottom right, #ffffffee, #f6f0ffcc);
-    box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
-    transform: translateX(-100%);
-    opacity: 0;
-    transition: all 0.4s ease;
-    display: flex;
-    flex-direction: column;
-    z-index: 3;
-
-    &.visible {
-      transform: translateX(0%);
-      opacity: 1;
-    }
-
-    .video-chapter-panel {
-      height: 100%;
-      display: flex;
-      overflow-x: auto;
-      gap: 10px;
-    }
-
-    .chapter {
-      height: 100%;
-      min-width: 200px;
-      max-height: 150px;
-
-      .chapter-photo {
-        width: 100%;
-        height: 60px;
-        border-radius: 10px 10px 0 0;
-      }
-
-      .chapter-content {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-
-        p {
-          margin: 0;
-        }
-      }
-    }
+  .video-chatbox {
+    flex: 1;
+    height: 100%;
   }
-
-  .video-convert {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    width: 300px;
-    background: linear-gradient(to bottom right, #ffffffee, #f6f0ffcc);
-    box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
-    transform: translateX(-100%);
-    opacity: 0;
-    transition: all 0.4s ease;
-    z-index: 3;
-
-    &.visible {
-      transform: translateX(0%);
-      opacity: 1;
-    }
-
-    .video-convert-editor {
-      height: 100%;
-    }
-  }
+}
+</style>
+<style lang="css">
+.p-tabs {
+  height: 100%;
+}
+.p-tabpanels {
+  height: 0;
+  flex: 1;
+  width: 100%;
+}
+.p-tabpanel {
+  height: 100%;
 }
 </style>

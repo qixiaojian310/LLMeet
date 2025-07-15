@@ -33,6 +33,7 @@
     "ant-design-vue": "4.x",
     "dayjs": "^1.11.13",
     "livekit-client": "^2.13.3",
+    "marked": "^16.0.0",
     "mpegts.js": "^1.8.0",
     "pinia": "^3.0.1",
     "primeicons": "^7.0.0",

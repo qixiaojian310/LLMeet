@@ -19,7 +19,8 @@
         <div class="title">
           <div class="left">
             <FontAwesomeIcon :icon="faVideo" />
-            <span>Meeting Record</span>
+            <span>Record</span>
+            <p class="description">Conference ID: {{ conference.meeting_id }}</p>
           </div>
           <Tag :value="conference.status" :severity="getStatusSeverity(conference.status)" />
         </div>
@@ -29,34 +30,35 @@
         <div class="conference-content">
           <div class="conference-info">
             <h3 class="conference-title">Conference title: {{ conference.title }}</h3>
-            <p class="description">Conference description: {{ conference.description }}</p>
           </div>
-          <div class="time-info">
-            <div class="time-item">
-              <FontAwesomeIcon :icon="faClock" />
-              <span>{{ formatDateTime(conference.start_time) }}</span>
+          <div class="conference-control">
+            <div class="time-info">
+              <div class="time-item">
+                <FontAwesomeIcon :icon="faClock" />
+                <span>{{ formatDateTime(conference.start_time) }}</span>
+              </div>
+              <div class="time-item">
+                <FontAwesomeIcon :icon="faHourglassEnd" />
+                <span>{{ formatDuration(conference.start_time, conference.end_time) }}</span>
+              </div>
             </div>
-            <div class="time-item">
-              <FontAwesomeIcon :icon="faHourglassEnd" />
-              <span>{{ formatDuration(conference.start_time, conference.end_time) }}</span>
-            </div>
-          </div>
-          <div class="btn-group">
-            <Button
-              :disabled="
-                conference.meeting_id === recordStore.meeting_id && recordStore.isRecording
-              "
-              class="toolbar-button"
-              severity="info"
-              @click="redirect(conference.meeting_id)"
-            >
-              <span
-                v-if="conference.meeting_id === recordStore.meeting_id && recordStore.isRecording"
+            <div class="btn-group">
+              <Button
+                :disabled="
+                  conference.meeting_id === recordStore.meeting_id && recordStore.isRecording
+                "
+                class="toolbar-button"
+                severity="info"
+                @click="redirect(conference.meeting_id)"
               >
-                <FontAwesomeIcon :icon="faSync" spin /> Stop
-              </span>
-              <span v-else> <FontAwesomeIcon :icon="faPlay" /> Play </span>
-            </Button>
+                <span
+                  v-if="conference.meeting_id === recordStore.meeting_id && recordStore.isRecording"
+                >
+                  <FontAwesomeIcon :icon="faSync" spin /> Stop
+                </span>
+                <span v-else> <FontAwesomeIcon :icon="faPlay" /> Play </span>
+              </Button>
+            </div>
           </div>
         </div>
       </template>
@@ -171,9 +173,13 @@ onMounted(async () => {
 .conference-records {
   height: 100%;
   width: 100%;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
+  display: grid;
+  /* 两列，每列等分宽度 */
+  grid-template-columns: repeat(2, 1fr);
+  /* 行列间距 */
+  gap: 16px;
+  /* 可选：左右内边距 */
+  padding: 16px;
   overflow: auto;
   padding: 10px;
 
@@ -218,11 +224,12 @@ onMounted(async () => {
     .conference-content {
       display: flex;
       gap: 0.3rem;
+      flex-direction: column;
       .conference-info {
         display: flex;
         flex-direction: column;
         gap: 0.3rem;
-        width: 40%;
+        width: 100%;
         .conference-title {
           font-size: 1.2rem;
           margin: 0;
@@ -235,24 +242,32 @@ onMounted(async () => {
           margin: 0;
         }
       }
-      .time-info {
+      .conference-control {
         display: flex;
-        flex-direction: column;
         gap: 0.3rem;
         flex-wrap: wrap;
         font-size: 0.9rem;
         color: var(--text-secondary-color);
-
-        .time-item {
+        .time-info {
           display: flex;
-          align-items: center;
-          gap: 6px;
+          flex-direction: column;
+          gap: 0.3rem;
+          flex-wrap: wrap;
+          font-size: 0.9rem;
+          color: var(--text-secondary-color);
+
+          .time-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+          }
         }
-      }
-      .btn-group {
-        display: flex;
-        flex: 1;
-        margin-left: 2rem;
+        .btn-group {
+          display: flex;
+          justify-content: flex-end;
+          flex: 1;
+          margin-left: 2rem;
+        }
       }
     }
   }

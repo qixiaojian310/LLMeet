@@ -244,3 +244,32 @@ export const convertContent = async (meeting_id: string) => {
     return res;
   }
 };
+
+export const getSummary = async (segments: any[]) => {
+  const res = await requestWrapper(
+    `/meeting/v1/chat/summarization`,
+    {
+      segments
+    },
+    {
+      method: 'POST'
+    },
+    true
+  );
+  return res;
+};
+
+export async function getChatStream(messages: any, segments: any) {
+  const res = await requestWrapper(
+    `/meeting/v1/chat/completions`,
+    {
+      messages,
+      segments
+    },
+    {
+      method: 'POST'
+    },
+    true
+  );
+  return res;
+}

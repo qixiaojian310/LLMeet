@@ -2,8 +2,10 @@
   <div class="transcription-viewer">
     <div class="header">
       <h2>Transcription</h2>
-      <p class="language">Language: {{ data.language.toUpperCase() }}</p>
-      <p class="create-time">Created at: {{ data.created_at }}</p>
+      <p class="sub-title">Language: {{ data.language.toUpperCase() }}</p>
+      <p class="sub-title">
+        Created at: {{ dayjs(data.created_at).format('YYYY-MM-DD HH:mm:ss') }}
+      </p>
     </div>
     <ul class="segments-list">
       <li v-for="(seg, index) in data.segments" :key="index" class="segment-item">
@@ -21,6 +23,7 @@
 
 <script setup lang="ts">
 import { defineProps } from 'vue';
+import dayjs from '@/utils/dayjsUtils';
 
 type Segment = { speaker: string; start: number; end: number; text: string };
 
@@ -58,10 +61,12 @@ function formatTime(sec: number): string {
   background: #fafafa;
   overflow-y: auto;
   height: 100%;
+  width: 100%;
   .header {
     display: flex;
+    flex-direction: column;
     justify-content: space-between;
-    align-items: center;
+    align-items: start;
     margin-bottom: 1rem;
 
     h2 {
@@ -69,7 +74,7 @@ function formatTime(sec: number): string {
       font-size: 1.5rem;
       color: #333;
     }
-    .language {
+    .sub-title {
       font-size: 0.9rem;
       color: #666;
     }
