@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from loguru import logger
 
 # 直接引入你之前写好的函数
-from speech_brain_test import extract_and_diarize_transcribe
+from speech_brain_test import extract_and_diarize_transcribe_and_visualize
 
 app = FastAPI(title="Audio Diarization & Transcription API")
 
@@ -27,6 +27,7 @@ app.add_middleware(
 class TranscribeResponse(BaseModel):
     language: str
     segments: List[dict]
+    video_summarization: str
 
 @app.post(
     "/transcribe",
@@ -54,12 +55,13 @@ async def transcribe_endpoint(
         logger.info(f"Saved {len(saved)} files to {tmpdir}")
 
         # 调用你现有的主流程
-        result = extract_and_diarize_transcribe(
+        result = extract_and_diarize_transcribe_and_visualize(
             mp4_dir=tmpdir,
             whisper_model="medium",
             whisper_cache="/root/autodl-tmp/whisper_model",
             num_speakers=num_speakers
         )
+        logger.info(result)
 
         return result
 

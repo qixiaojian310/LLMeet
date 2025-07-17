@@ -1,3 +1,4 @@
+import torch
 from unsloth.chat_templates import get_chat_template
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, HTTPException
@@ -29,6 +30,7 @@ class Message(BaseModel):
 class ChatRequest(BaseModel):
     messages: List[Message]
     segments: Optional[List[TranscriptSegment]]
+    video_summarization: str
     stream: bool = True
 
 @asynccontextmanager
@@ -40,14 +42,17 @@ async def lifespan(app: FastAPI):
         model_name="unsloth/Qwen3-14B-bnb-4bit",
         cache_dir=cache_dir,
         load_in_4bit=True,
-        max_seq_length=8192,
+        max_seq_length=16384,
         device_map="auto",
     )
     tokenizer = get_chat_template(
         tokenizer,
-        chat_template="qwen3",  # 对应 Qwen2 模型
+        chat_template="qwen3",
         mapping={"role": "role", "content": "content", "user": "user", "assistant": "assistant"}
     )
+    model = PeftModel.from_pretrained(model, f"{cache_dir}/qwen3-14b-summarization-lora-finetuned")
+    model = model.merge_and_unload()
+    model = PeftModel.from_pretrained(model, f"{cache_dir}/qwen3-14b-summarization-lora-finetuned-meetingbank")
     model.eval()
     yield
 
@@ -59,17 +64,52 @@ async def _aiter_from_sync(sync_iter):
         yield item
         await asyncio.sleep(0)
 
-def build_summarization_messages(segments: List[TranscriptSegment]) -> List[dict]:
+def build_summarization_messages(segments: List[TranscriptSegment], video_summarization: str) -> List[dict]:
     system = {
         "role": "system",
-        "content": "你是一个会议摘要助手，会将下面的会议转录生成简洁摘要。"
+        "content": (
+            "You are a multilingual meeting summarization assistant. "
+            "Please read the transcript below and generate a concise summary in the same language as the conversation. "
+            "For example, summarize in English if the transcript is in English, and summarize in Chinese if the transcript is in Chinese.\n\n"
+            "你是一个多语言会议摘要助手，请根据会议内容所使用的语言输出对应语言的简洁摘要。"
+            "Next, I will send you two parts of data. One is the text transcription of the video's audio, and the other is the summary of the video's images. The video images are the screen shots from the video conference camera. You can refer to both of them simultaneously."
+            "I can now assure you that visual summary refers to the camera footage of multiple participants in a video conference."
+            "During the process of generating the summary, do not simply merge the visual summary and the transcript, but instead describe it in natural language."
+        )
     }
-    text = "\n".join(f"{s.speaker}: {s.text}" for s in segments)
+
+    transcript_text = "\n".join(f"{s.speaker}: {s.text}" for s in segments)
+    fewshot_user = {
+        "role": "user",
+        "content": (
+            "Transcript:\n"
+            "SPK01: Welcome everyone to today's product meeting.\n"
+            "SPK02: Let's start by reviewing the timeline for our next app release.\n"
+            "SPK01: We are aiming for an internal beta by mid-August.\n"
+            "SPK03: The new UI has been completed, pending QA review.\n\n"
+            "Visual Summary (video without audio):\n"
+            "Three people are sitting around a meeting table, each with a laptop. "
+            "One participant is presenting slides on a shared screen.\n\n"
+            "Please generate a meeting summary based on the above."
+        )
+    }
+    # ❷ One-shot 输出
+    fewshot_assistant = {
+        "role": "assistant",
+        "content": (
+            "The team reviewed the timeline for the next app release, targeting an internal beta by mid-August. "
+            "The new UI is complete and awaits QA. Participants were engaged while one member presented the slides."
+        )
+    }
     user = {
         "role": "user",
-        "content": text
+        "content": (
+            f"Transcript:\n{transcript_text}\n\n"
+            f"Visual Summary (video without audio):\n{video_summarization}\n\n"
+            f"Please generate a meeting summary based on the above. "
+        )
     }
-    return [system, user]
+    return [system, fewshot_user, fewshot_assistant, user]
 
 async def _stream_response(chat_messages: List[dict]):
     if not hasattr(tokenizer, "apply_chat_template"):
@@ -87,10 +127,11 @@ async def _stream_response(chat_messages: List[dict]):
         target=model.generate,
         kwargs={
             **inputs,
-            "max_new_tokens": 2048,
-            "do_sample": False,
+            "max_new_tokens": 4096,
+            "do_sample": True,
             "temperature": 0.7,
-            "top_p": 0.95,
+            "top_p": 0.9,
+            "top_k": 40,
             "streamer": streamer,
         },
     )
@@ -113,7 +154,7 @@ async def _stream_response(chat_messages: List[dict]):
         # 进入正式输出阶段
         chunk = {"choices": [{"delta": {"content": token}, "index": 0, "finish_reason": None}]}
         yield f"data: {json.dumps(chunk, ensure_ascii=False)}\n\n"
-
+    torch.cuda.empty_cache()
     yield "data: [DONE]\n\n"
 
 # 🚀 /v1/chat/completions
@@ -125,7 +166,14 @@ async def chat(req: ChatRequest):
             segment_text = "\n".join(f"{s.speaker}: {s.text}" for s in req.segments)
             summary_hint = {
                 "role": "system",
-                "content": f"以下是会议背景材料，请参考后回答用户提问：\n\n{segment_text}"
+                "content": (
+                    "Below is the meeting transcript background. Please refer to it when answering the user's question. "
+                    "You should respond in the same language as the user's question. For example, reply in English if the user asks in English, "
+                    "and reply in Chinese if the user asks in Chinese.\n\n"
+                    "以下是会议的文字记录和无声视频的图像总结。请结合**两者**回答用户问题。"
+                    "若视频中包含文字记录未体现的重要信息，请务必在回答中体现。"
+                    f"The Transcript of this meeting is {segment_text}, and the pure image video (without audio) summarization is {req.video_summarization}"
+                )
             }
             messages.insert(0, summary_hint)
         except Exception as e:
@@ -162,7 +210,7 @@ async def summarization(req: ChatRequest):
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"JSON parse error: {e}")
     
-    messages = build_summarization_messages(segments)
+    messages = build_summarization_messages(segments,req.video_summarization)
     if req.stream:
         return StreamingResponse(_stream_response(messages), media_type="text/event-stream")
     

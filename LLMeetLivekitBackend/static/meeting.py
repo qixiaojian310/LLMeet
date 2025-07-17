@@ -184,7 +184,7 @@ def fetch_meeting_records(meeting_id: str) -> List[Dict[str, Any]]:
         logger.error(f"fetch_meeting_records error: {e}")
         return []
     
-def insert_meeting_minutes(meeting_id: str, segments: Dict[str, Any], language: str = "en") -> bool:
+def insert_meeting_minutes(meeting_id: str, segments: Dict[str, Any], language: str = "en", video_summarization: str = "") -> bool:
     """
     插入或更新会议纪要到 minutes 表，包含 segments 和 language 字段。
     """
@@ -194,13 +194,13 @@ def insert_meeting_minutes(meeting_id: str, segments: Dict[str, Any], language: 
         with get_connection() as conn:
             with conn.cursor() as cursor:
                 cursor.execute("""
-                    INSERT INTO minutes (meeting_id, segments, language)
-                    VALUES (%s, %s, %s) AS new
+                    INSERT INTO minutes (meeting_id, segments, language, video_summarization)
+                    VALUES (%s, %s, %s, %s) AS new
                     ON DUPLICATE KEY UPDATE 
                         segments = new.segments,
                         language = new.language,
-                        created_at = CURRENT_TIMESTAMP
-                """, (meeting_id, minutes_json, language))
+                        video_summarization = new.video_summarization
+                """, (meeting_id, minutes_json, language, video_summarization))
                 conn.commit()
         return True
     except Exception as e:
@@ -209,13 +209,13 @@ def insert_meeting_minutes(meeting_id: str, segments: Dict[str, Any], language: 
 
 def get_meeting_minutes(meeting_id: str) -> Optional[Dict[str, Any]]:
     """
-    查询会议纪要，返回一个包含 segments、created_at、language 的字典。
+    查询会议纪要，返回一个包含 segments、created_at、language, video_summarization 的字典。
     """
     try:
         with get_connection() as conn:
             with conn.cursor(dictionary=True) as cursor:
                 cursor.execute("""
-                    SELECT segments, created_at, language
+                    SELECT segments, created_at, language, video_summarization
                     FROM minutes
                     WHERE meeting_id = %s
                     LIMIT 1
@@ -226,7 +226,8 @@ def get_meeting_minutes(meeting_id: str) -> Optional[Dict[str, Any]]:
         return {
             "segments": json.loads(row["segments"]),
             "created_at": row["created_at"],
-            "language": row["language"]
+            "language": row["language"],
+            "video_summarization": row["video_summarization"]
         }
     except Exception as e:
         logger.error(f"get_meeting_minutes error: {e}")

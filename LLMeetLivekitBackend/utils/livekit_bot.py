@@ -5,6 +5,7 @@ import shutil
 from pathlib import Path
 from typing import Dict, List
 import httpx
+import pytz
 
 from static.meeting import insert_meeting_minutes, insert_meeting_record
 from utils.record_notificator import record_notificator
@@ -150,12 +151,12 @@ async def run_bot(room_name: str, bot_identity: str, username: str):
     )
     # 连接
     room = livekit_rtc.Room()
-    max_participant = 0
+    state = {"max_participant": 0}
     rooms[room_name] = room
     @room.on("participant_connected")
     def on_join(p):
         logger.info(f"[{room_name}] 用户加入: {p.identity}")
-        max_participant = max_participant+1
+        state["max_participant"] += 1
     @room.on("participant_disconnected")
     def on_leave(p):
         sid = f"{p.identity}_{p.sid}" 
@@ -163,7 +164,7 @@ async def run_bot(room_name: str, bot_identity: str, username: str):
             sessions[sid].is_recording = False
         if len(room.remote_participants) == 0:
             logger.info(f"[{room_name}] 房间空，自动关闭 Bot")
-            asyncio.create_task(shutdown_bot(room_name, max_participant))
+            asyncio.create_task(shutdown_bot(room_name, state["max_participant"]))
     @room.on("track_subscribed")
     def on_track(track, pub, p):
         sid = f"{p.identity}_{p.sid}"
@@ -234,7 +235,8 @@ async def shutdown_bot(room_name: str, max_participant: int):
     insert_meeting_minutes(
         meeting_id=room_name,
         segments=ai_result.get("segments", []),
-        language=ai_result.get("language", 'en')
+        language=ai_result.get("language", 'en'),
+        video_summarization=ai_result.get("video_summarization", "")
     )
     logger.info(f"[{room_name}] 已将转写结果写入会议纪要")
     bot_tasks.pop(room_name, None)

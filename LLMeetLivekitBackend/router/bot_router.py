@@ -60,10 +60,12 @@ class TranscriptSegment(BaseModel):
     
 class SummaryRequest(BaseModel):
     segments: List[TranscriptSegment]
+    video_summarization: str
 
 class ChatRequest(BaseModel):
     messages: List[Message]
     segments: Optional[List[TranscriptSegment]]
+    video_summarization: str
     stream: bool = True  # 跳转时默认开启流式
 
 # -----------------------------
@@ -208,6 +210,7 @@ async def proxy_summarization(req: SummaryRequest):
             )
         ],
         segments=None,
+        video_summarization=req.video_summarization,
         stream=True,
     )
     async def event_stream():
