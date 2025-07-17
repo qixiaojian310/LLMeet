@@ -7,6 +7,13 @@
         Created at: {{ dayjs(data.created_at).format('YYYY-MM-DD HH:mm:ss') }}
       </p>
     </div>
+    <div class="video-summarization">
+      <h3>Video Summarization</h3>
+      <p>{{ data.video_summarization }}</p>
+    </div>
+    <div class="segment-list">
+      <h3>Transcription</h3>
+    </div>
     <ul class="segments-list">
       <li v-for="(seg, index) in data.segments" :key="index" class="segment-item">
         <div class="segment-badge" :style="{ backgroundColor: getSpeakerColor(seg.speaker) }">
@@ -31,6 +38,7 @@ interface TranscriptionData {
   language: string;
   created_at: string;
   segments: Segment[];
+  video_summarization: string;
 }
 
 const props = defineProps<{ data: TranscriptionData }>();

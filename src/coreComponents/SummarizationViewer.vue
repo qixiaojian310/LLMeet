@@ -21,6 +21,10 @@ const props = defineProps({
   segments: {
     type: Array,
     required: true
+  },
+  video_summarization: {
+    type: String,
+    required: true
   }
 });
 
@@ -33,7 +37,7 @@ const renderedHtml = computed(() => marked.parse(renderedMd.value));
 // 4. 拉取流式数据并累积
 async function startSummarization() {
   renderedMd.value = ''; // 重置
-  const resp = await getSummary(props.segments);
+  const resp = await getSummary(props.segments, props.video_summarization);
   if (!resp.ok) {
     console.error(await resp.text());
     return;

@@ -44,7 +44,7 @@
       </div>
     </div>
     <div class="video-chatbox">
-      <Tabs value="video">
+      <Tabs value="transcription">
         <TabList>
           <Tab value="transcription"
             ><FontAwesomeIcon :icon="faFileText" /><span class="tab-text">Transcription</span></Tab
@@ -61,10 +61,18 @@
             <TranscriptionViewer v-if="convertResult" :data="convertResult" />
           </TabPanel>
           <TabPanel value="summary">
-            <SummarizationViewer v-if="convertResult" :segments="convertResult.segments" />
+            <SummarizationViewer
+              v-if="convertResult"
+              :segments="convertResult.segments"
+              :video_summarization="convertResult.video_summarization"
+            />
           </TabPanel>
           <TabPanel value="chat">
-            <ChatViewer v-if="convertResult" :segments="convertResult.segments" />
+            <ChatViewer
+              v-if="convertResult"
+              :segments="convertResult.segments"
+              :video_summarization="convertResult.video_summarization"
+            />
           </TabPanel>
         </TabPanels>
       </Tabs>

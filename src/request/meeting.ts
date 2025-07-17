@@ -245,11 +245,12 @@ export const convertContent = async (meeting_id: string) => {
   }
 };
 
-export const getSummary = async (segments: any[]) => {
+export const getSummary = async (segments: any[], video_summarization: string) => {
   const res = await requestWrapper(
     `/meeting/v1/chat/summarization`,
     {
-      segments
+      segments,
+      video_summarization
     },
     {
       method: 'POST'
@@ -259,12 +260,13 @@ export const getSummary = async (segments: any[]) => {
   return res;
 };
 
-export async function getChatStream(messages: any, segments: any) {
+export async function getChatStream(messages: any, segments: any, video_summarization: string) {
   const res = await requestWrapper(
     `/meeting/v1/chat/completions`,
     {
       messages,
-      segments
+      segments,
+      video_summarization
     },
     {
       method: 'POST'

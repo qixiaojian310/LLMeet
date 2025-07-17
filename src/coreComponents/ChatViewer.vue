@@ -54,6 +54,10 @@ const props = defineProps({
   segments: {
     type: Array,
     required: true
+  },
+  video_summarization: {
+    type: String,
+    required: true
   }
 });
 async function onSend() {
@@ -71,7 +75,8 @@ async function onSend() {
   // 发起流式请求
   const resp = await getChatStream(
     chatLog.value.filter(m => m.role !== 'system'),
-    props.segments
+    props.segments,
+    props.video_summarization
   );
 
   if (!resp.ok) {
