@@ -5,11 +5,9 @@ from datasets import load_dataset
 from transformers import BitsAndBytesConfig
 from trl import SFTTrainer, SFTConfig
 
-# 设置基础模型和缓存路径
 model_name = "unsloth/Qwen3-14B-bnb-4bit"
 cache_dir = "/root/autodl-tmp/llm-model"
 
-# 1. 加载底座量化模型
 bnb_config = BitsAndBytesConfig(
     load_in_4bit=True,
     bnb_4bit_use_double_quant=True,
@@ -24,7 +22,6 @@ base_model, tokenizer = FastLanguageModel.from_pretrained(
     load_in_4bit=True,
 )
 
-# 2. 通用训练函数（支持 CNN/DailyMail 和 MeetingBank）
 def train_stage(
     base_model,
     tokenizer,
@@ -45,14 +42,12 @@ def train_stage(
 
     print(f"🚀 开始微调：{stage_name}")
 
-    # 加载 & 预处理数据
     raw_train = load_dataset(dataset_name, name, split=train_split, cache_dir=cache_dir)
     raw_val = load_dataset(dataset_name, name, split=val_split, cache_dir=cache_dir)
 
     train_dataset = raw_train.map(preprocess_fn, batched=True, remove_columns=raw_train.column_names)
     val_dataset = raw_val.map(preprocess_fn, batched=True, remove_columns=raw_val.column_names)
 
-    # 初始化 LoRA
     model = FastLanguageModel.get_peft_model(
         base_model,
         r=32,
@@ -97,7 +92,6 @@ def train_stage(
     trainer.model.save_pretrained(adapter_save_path)
     tokenizer.save_pretrained(adapter_save_path)
 
-# 3. CNN/DailyMail 微调阶段
 train_stage(
     base_model=base_model,
     tokenizer=tokenizer,
@@ -116,7 +110,6 @@ train_stage(
     name="3.0.0",
 )
 
-# 4. MeetingBank 微调阶段
 train_stage(
     base_model=base_model,
     tokenizer=tokenizer,

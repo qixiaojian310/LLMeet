@@ -68,9 +68,6 @@ def concat_videos_by_timestamp(
     print(f"✅ 视频合并完成：{output_video}")
     return output_video
 
-# ---------------------------------------------
-# 1. 合并音频（与原 mix_audio_by_timestamp 保持一致）
-# ---------------------------------------------
 def mix_audio_by_timestamp(
     mp4_dir: str,
     output_wav: str = "merged.wav"
@@ -113,9 +110,6 @@ def mix_audio_by_timestamp(
     subprocess.run(cmd, check=True)
     print(f"✅ 合并完成：{output_wav}")
 
-# ---------------------------------------------------
-# 2. 使用 SpeechBrain 提取说话人嵌入 + 聚类 (Diarization)
-# ---------------------------------------------------
 def diarize_with_speechbrain(
     merged_wav: str,
     model_cache: str,
@@ -163,9 +157,6 @@ def diarize_with_speechbrain(
         })
     return diarization
 
-# ---------------------------------------------------
-# 3. 合并 & 分离 & 转写 主流程
-# ---------------------------------------------------
 from pathlib import Path
 
 def extract_video_insights_with_llava(
@@ -192,7 +183,6 @@ def extract_video_insights_with_llava(
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     interval = total_frames // num_frames
     logger.info(interval)
-    # 创建帧图像输出目录
     frame_dir = Path(mp4_dir).parent / "llava_frames"
     frame_dir.mkdir(parents=True, exist_ok=True)
     frames = []
