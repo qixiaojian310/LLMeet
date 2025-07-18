@@ -4,7 +4,7 @@ import path from "path";
 import tailwindcss from "@tailwindcss/vite";
 // https://vite.dev/config/
 export default defineConfig({
-  base: "/llmeet-home/",
+  base: "/LLMeet/",
   plugins: [vue(), tailwindcss()],
   resolve: {
     alias: {
