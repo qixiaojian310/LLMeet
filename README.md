@@ -1,5 +1,3 @@
-Sure! Here's the pure Markdown version of the setup instructions in English:
-
 # Project Deployment Guide
 
 This project involves setting up multiple components, including the frontend, backend, model, and Livekit server. Below are the detailed deployment steps.
