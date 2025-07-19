@@ -5,8 +5,8 @@
       <div v-if="clickEvent">
         <h3>{{ clickEvent.title }}</h3>
         <p><strong>Description:</strong> {{ clickEvent.extendedProps.description }}</p>
-        <p><strong>Start Time:</strong> {{ formatDate(clickEvent.start) }}</p>
-        <p><strong>End Time:</strong> {{ formatDate(clickEvent.end) }}</p>
+        <p><strong>Start Time:</strong> {{ formatDate(timeConverter(clickEvent.start!)) }}</p>
+        <p><strong>End Time:</strong> {{ formatDate(timeConverter(clickEvent.end!)) }}</p>
         <p><strong>Created By:</strong> {{ clickEvent.extendedProps.creator_id }}</p>
         <p><strong>Status:</strong> {{ clickEvent.extendedProps.status }}</p>
         <p><strong>Meeting ID:</strong> {{ clickEvent.extendedProps.meeting_id }}</p>
@@ -32,7 +32,9 @@ import { EventImpl } from '@fullcalendar/core/internal';
 import dayjs from '@/utils/dayjsUtils';
 
 const clickEvent = ref<EventImpl | null>(null);
-
+const timeConverter = (timeStr: string | Date) => {
+  return dayjs.utc(timeStr).tz(dayjs.tz.guess()).toDate();
+};
 const formatDate = (date: Date | string | null) => {
   if (!date) return '';
   return dayjs(date).format('YYYY-MM-DD HH:mm');
@@ -68,8 +70,8 @@ onMounted(async () => {
       events: getAllRes.meetings.map((meeting: any) => {
         return {
           title: meeting.title,
-          start: meeting.start_time,
-          end: meeting.end_time,
+          start: formatDate(timeConverter(meeting.start_time)),
+          end: formatDate(timeConverter(meeting.end_time)),
           description: meeting.description,
           creator_id: meeting.creator_id,
           status: meeting.status,
